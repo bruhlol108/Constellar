@@ -83,7 +83,7 @@
   --background: #0a0b1e;
   --foreground: oklch(0.985 0 0);
   --card: #12142e;
-  --card-foreground: oklch(0.985 0 0);
+--card-foreground: oklch(0.985 0 0);
   --popover: #12142e;
   --popover-foreground: oklch(0.985 0 0);
   --primary: #8b5cf6;

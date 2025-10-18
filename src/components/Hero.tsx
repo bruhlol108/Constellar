@@ -2,6 +2,7 @@
 
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Sparkles } from "lucide-react";
+import Link from "next/link";
 
 export default function Hero() {
   return (
@@ -35,13 +36,15 @@ export default function Hero() {
           </p>
 
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-4">
-            <Button
-              size="lg"
-              className="bg-purple-600 hover:bg-purple-700 text-white px-8 group"
-            >
-              Start Creating
-              <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
-            </Button>
+            <Link href="/canvas">
+              <Button
+                size="lg"
+                className="bg-purple-600 hover:bg-purple-700 text-white px-8 group"
+              >
+                Start Creating
+                <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
+              </Button>
+            </Link>
             <Button
               size="lg"
               variant="outline"
