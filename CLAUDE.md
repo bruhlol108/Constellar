@@ -154,13 +154,49 @@ excalidrawAPI.updateScene({ elements });
 - `resetScene()` - Clear the canvas
 - `addFiles()` - Add images/files to scene
 
-## Claude MCP Integration (Planned)
+## Claude MCP Integration
 
-The sidebar will connect to Claude AI via Model Context Protocol:
-- Parse natural language commands from chat interface
-- Convert user intent to Excalidraw element skeletons
-- Call Excalidraw API to render generated shapes
-- Maintain conversation context for iterative design
+### MCP Server (`mcp-server/`)
+
+A FastMCP server provides tools for generating Excalidraw elements programmatically. Located in `mcp-server/server.py`.
+
+**Available Tools:**
+- `create_rectangle` - Create rectangles with optional labels
+- `create_ellipse` - Create circles/ellipses with optional labels
+- `create_diamond` - Create diamond shapes with optional labels
+- `create_arrow` - Create arrows between points with optional labels
+- `create_line` - Create simple lines
+- `create_text_standalone` - Create standalone text elements
+- `create_flowchart` - Create complete flowcharts with connected shapes
+
+**Setup:**
+```bash
+cd mcp-server
+pip install -r requirements.txt
+```
+
+**Claude Desktop Configuration:**
+Add to `~/Library/Application Support/Claude/claude_desktop_config.json`:
+```json
+{
+  "mcpServers": {
+    "constellar": {
+      "command": "python",
+      "args": ["/absolute/path/to/Constellar/mcp-server/server.py"]
+    }
+  }
+}
+```
+
+**Element Generation:**
+All tools return properly formatted Excalidraw JSON elements with:
+- Unique auto-generated IDs
+- Space theme colors (purple/violet palette)
+- Hand-drawn roughness style
+- Support for labels and text containers
+- Proper element bindings for connectors
+
+The frontend will consume these elements and render them on the Excalidraw canvas through the API.
 
 ## Build Configuration
 
