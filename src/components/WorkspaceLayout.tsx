@@ -9,9 +9,8 @@
 
 "use client";
 
-import { useState } from "react";
-// import { Whiteboard } from "./Whiteboard";
-import { WhiteboardPlaceholder as Whiteboard } from "./WhiteboardPlaceholder";
+import { useState, useRef } from "react";
+import dynamic from "next/dynamic";
 import { ChatSidebar } from "./ChatSidebar";
 import {
   ResizableHandle,
@@ -24,9 +23,14 @@ import { Button } from "./ui/button";
 
 type ExcalidrawImperativeAPI = any;
 
+// Dynamically import Excalidraw to avoid SSR issues
+const ExcalidrawCanvas = dynamic(
+  () => import("./ExcalidrawCanvas"),
+  { ssr: false }
+);
+
 export function WorkspaceLayout() {
-  const [excalidrawAPI, setExcalidrawAPI] =
-    useState<ExcalidrawImperativeAPI | null>(null);
+  const excalidrawRef = useRef<any>(null);
 
   return (
     <div className="h-screen w-screen flex flex-col overflow-hidden bg-slate-950">
@@ -61,10 +65,10 @@ export function WorkspaceLayout() {
       {/* Main Content: Resizable Split View */}
       <div className="flex-1 overflow-hidden" style={{ height: 'calc(100vh - 56px)' }}>
         <ResizablePanelGroup direction="horizontal" style={{ height: '100%' }}>
-          {/* Left Panel: Whiteboard */}
+          {/* Left Panel: Excalidraw Canvas */}
           <ResizablePanel defaultSize={70} minSize={30} style={{ height: '100%' }}>
             <div style={{ height: '100%', width: '100%' }}>
-              <Whiteboard onExcalidrawReady={setExcalidrawAPI} />
+              <ExcalidrawCanvas ref={excalidrawRef} />
             </div>
           </ResizablePanel>
 
@@ -73,7 +77,7 @@ export function WorkspaceLayout() {
 
           {/* Right Panel: Chat Sidebar */}
           <ResizablePanel defaultSize={30} minSize={20} maxSize={50} style={{ height: '100%' }}>
-            <ChatSidebar excalidrawAPI={excalidrawAPI} />
+            <ChatSidebar excalidrawAPI={excalidrawRef.current} />
           </ResizablePanel>
         </ResizablePanelGroup>
       </div>
