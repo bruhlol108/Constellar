@@ -3,10 +3,10 @@
 import React, { useRef, forwardRef, useImperativeHandle } from "react"
 import { Excalidraw } from "@excalidraw/excalidraw"
 
-const ExcalidrawCanvas = forwardRef<any, {}>((props, ref) => {
+const ExcalidrawCanvas = forwardRef<any, {}>((_props, ref) => {
   const excalidrawRef = useRef<any>(null)
 
-  // Expose the Excalidraw ref to parent components
+  // Expose the Excalidraw API to parent components
   useImperativeHandle(ref, () => excalidrawRef.current)
 
   const handleSaveJSON = async () => {
@@ -87,7 +87,7 @@ const ExcalidrawCanvas = forwardRef<any, {}>((props, ref) => {
       </div>
 
       <div style={{ flex: 1 }}>
-        <Excalidraw ref={excalidrawRef} />
+        <Excalidraw excalidrawAPI={(api: any) => { excalidrawRef.current = api }} />
       </div>
     </div>
   )
