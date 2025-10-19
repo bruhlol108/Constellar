@@ -166,13 +166,13 @@ export default function LandingPage() {
                 transition={{ duration: 0.6, delay: 0.1 }}
                 className="group"
               >
-                <div className="relative h-full p-8 rounded-2xl border border-white/10 bg-gradient-to-b from-white/5 to-white/[0.02] backdrop-blur-xl hover:border-purple-500/30 transition-all duration-500 hover:shadow-2xl hover:shadow-purple-500/10">
-                  <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-purple-500/20 to-violet-500/10 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-500">
+                <div className="relative h-full p-8 rounded-2xl border border-white/10 bg-gradient-to-b from-white/5 to-white/[0.02] backdrop-blur-xl">
+                  <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-purple-500/20 to-violet-500/10 flex items-center justify-center mb-6">
                     <Brain className="w-7 h-7 text-purple-400" />
                   </div>
                   <h3 className="text-2xl font-bold mb-4">Cosmic Intelligence</h3>
                   <p className="text-gray-400 leading-relaxed">
-                    AI that navigates your entire universe of ideas, remembering every orbit and constellation. Build systems that evolve across time and space.
+                    AI-powered understanding of your design intent that automatically generates diagrams, flowcharts, and system architectures on an Excalidraw canvas.
                   </p>
                 </div>
               </motion.div>
@@ -185,13 +185,13 @@ export default function LandingPage() {
                 transition={{ duration: 0.6, delay: 0.2 }}
                 className="group"
               >
-                <div className="relative h-full p-8 rounded-2xl border border-white/10 bg-gradient-to-b from-white/5 to-white/[0.02] backdrop-blur-xl hover:border-purple-500/30 transition-all duration-500 hover:shadow-2xl hover:shadow-purple-500/10">
-                  <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-purple-500/20 to-violet-500/10 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-500">
+                <div className="relative h-full p-8 rounded-2xl border border-white/10 bg-gradient-to-b from-white/5 to-white/[0.02] backdrop-blur-xl">
+                  <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-purple-500/20 to-violet-500/10 flex items-center justify-center mb-6">
                     <MessageSquare className="w-7 h-7 text-purple-400" />
                   </div>
                   <h3 className="text-2xl font-bold mb-4">Stellar Communication</h3>
                   <p className="text-gray-400 leading-relaxed">
-                    Transmit your vision in natural language. Watch as nebulas of thought crystallize into constellations of architecture and design.
+                    Chat naturally with AI to create diagrams. Simply describe what you want - "create a web app architecture" - and watch it appear on your canvas in real-time.
                   </p>
                 </div>
               </motion.div>
@@ -204,13 +204,13 @@ export default function LandingPage() {
                 transition={{ duration: 0.6, delay: 0.3 }}
                 className="group"
               >
-                <div className="relative h-full p-8 rounded-2xl border border-white/10 bg-gradient-to-b from-white/5 to-white/[0.02] backdrop-blur-xl hover:border-purple-500/30 transition-all duration-500 hover:shadow-2xl hover:shadow-purple-500/10">
-                  <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-purple-500/20 to-violet-500/10 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-500">
+                <div className="relative h-full p-8 rounded-2xl border border-white/10 bg-gradient-to-b from-white/5 to-white/[0.02] backdrop-blur-xl">
+                  <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-purple-500/20 to-violet-500/10 flex items-center justify-center mb-6">
                     <Zap className="w-7 h-7 text-purple-400" />
                   </div>
                   <h3 className="text-2xl font-bold mb-4">Lightspeed Iteration</h3>
                   <p className="text-gray-400 leading-relaxed">
-                    Warp-speed auto-save, temporal version control, and real-time collaboration across galaxies. Never lose a star, always orbit forward.
+                    Automatic project saving with hand-drawn Excalidraw aesthetics. Edit, refine, and iterate on your diagrams with the power of AI assistance at every step.
                   </p>
                 </div>
               </motion.div>
