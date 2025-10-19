@@ -1,10 +1,36 @@
 "use client";
 
 import Link from "next/link";
-import { Sparkles } from "lucide-react";
+import { useEffect, useState } from "react";
+import { Sparkles, LogOut, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { createClient } from "@/lib/supabase/client";
+import type { User as SupabaseUser } from "@supabase/supabase-js";
 
 export default function Header() {
+  const [user, setUser] = useState<SupabaseUser | null>(null);
+  const supabase = createClient();
+
+  useEffect(() => {
+    // Get initial session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setUser(session?.user ?? null);
+    });
+
+    // Listen for auth changes
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user ?? null);
+    });
+
+    return () => subscription.unsubscribe();
+  }, [supabase.auth]);
+
+  const handleSignOut = async () => {
+    await supabase.auth.signOut();
+  };
+
   return (
     <header className="fixed top-0 w-full z-50 border-b border-white/10 bg-background/80 backdrop-blur-xl">
       <div className="max-w-7xl mx-auto px-6 py-4">
@@ -35,12 +61,32 @@ export default function Header() {
             >
               Docs
             </Link>
-            <Button
-              variant="outline"
-              className="border-purple-500/50 hover:bg-purple-500/10 hover:border-purple-400"
-            >
-              Get Started
-            </Button>
+
+            {user ? (
+              <div className="flex items-center gap-4">
+                <div className="flex items-center gap-2 text-sm text-gray-300">
+                  <User className="w-4 h-4" />
+                  <span>{user.email}</span>
+                </div>
+                <Button
+                  variant="outline"
+                  onClick={handleSignOut}
+                  className="border-purple-500/50 hover:bg-purple-500/10 hover:border-purple-400"
+                >
+                  <LogOut className="w-4 h-4 mr-2" />
+                  Sign Out
+                </Button>
+              </div>
+            ) : (
+              <Link href="/auth">
+                <Button
+                  variant="outline"
+                  className="border-purple-500/50 hover:bg-purple-500/10 hover:border-purple-400"
+                >
+                  Sign In
+                </Button>
+              </Link>
+            )}
           </nav>
         </div>
       </div>
