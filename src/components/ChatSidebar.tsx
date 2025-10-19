@@ -246,23 +246,25 @@ export function ChatSidebar({ excalidrawAPI }: ChatSidebarProps) {
       </div>
 
       {/* Messages */}
-      <ScrollArea ref={scrollAreaRef} className="flex-1 px-4 py-4">
-        <div className="space-y-4">
-          {messages.map((message) => (
-            <ChatMessage key={message.id} message={message} />
-          ))}
-          {isLoading && (
-            <div className="flex items-center gap-3 p-4 rounded-lg bg-slate-800/50 mr-8">
-              <div className="flex-shrink-0 w-8 h-8 rounded-full bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center">
-                <Loader2 className="w-5 h-5 text-white animate-spin" />
+      <div className="flex-1 overflow-hidden">
+        <ScrollArea ref={scrollAreaRef} className="h-full px-4 py-4">
+          <div className="space-y-4 pb-4">
+            {messages.map((message) => (
+              <ChatMessage key={message.id} message={message} />
+            ))}
+            {isLoading && (
+              <div className="flex items-center gap-3 p-4 rounded-lg bg-slate-800/50 mr-8">
+                <div className="flex-shrink-0 w-8 h-8 rounded-full bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center">
+                  <Loader2 className="w-5 h-5 text-white animate-spin" />
+                </div>
+                <div className="text-sm text-slate-400">
+                  Constellar AI is thinking...
+                </div>
               </div>
-              <div className="text-sm text-slate-400">
-                Constellar AI is thinking...
-              </div>
-            </div>
-          )}
-        </div>
-      </ScrollArea>
+            )}
+          </div>
+        </ScrollArea>
+      </div>
 
       {/* Input Area */}
       <div className="flex-shrink-0 p-4 border-t border-slate-800/50 bg-slate-900/50 backdrop-blur-sm">
