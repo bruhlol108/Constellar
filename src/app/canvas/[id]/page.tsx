@@ -7,6 +7,12 @@ import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Sparkles, Save, Loader2, Check, LogOut } from "lucide-react";
 import Link from "next/link";
+import { ChatSidebar } from "@/components/ChatSidebar";
+import {
+  ResizableHandle,
+  ResizablePanel,
+  ResizablePanelGroup,
+} from "@/components/ui/resizable";
 
 // Load Excalidraw dynamically (client-side only)
 const Excalidraw = dynamic(
@@ -23,6 +29,7 @@ export default function CanvasPage({ params }: { params: Promise<{ id: string }>
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [excalidrawAPI, setExcalidrawAPI] = useState<any>(null);
   const excalidrawRef = useRef<any>(null);
   const autoSaveTimerRef = useRef<any>(null);
   const router = useRouter();
@@ -40,6 +47,15 @@ export default function CanvasPage({ params }: { params: Promise<{ id: string }>
     });
   }, [projectId, router, supabase.auth]);
 
+  // Re-load canvas data when API becomes available
+  useEffect(() => {
+    if (excalidrawAPI && project?.canvas_data) {
+      setTimeout(() => {
+        excalidrawAPI.updateScene(project.canvas_data);
+      }, 100);
+    }
+  }, [excalidrawAPI, project]);
+
   const loadProject = async () => {
     setLoading(true);
     try {
@@ -48,13 +64,6 @@ export default function CanvasPage({ params }: { params: Promise<{ id: string }>
 
       if (data.project) {
         setProject(data.project);
-
-        // Load canvas data if it exists
-        if (data.project.canvas_data && excalidrawRef.current) {
-          setTimeout(() => {
-            excalidrawRef.current?.updateScene?.(data.project.canvas_data);
-          }, 100);
-        }
       } else {
         alert("Project not found");
         router.push("/projects");
@@ -103,11 +112,11 @@ export default function CanvasPage({ params }: { params: Promise<{ id: string }>
   }, [projectId]);
 
   const handleManualSave = async () => {
-    if (!excalidrawRef.current) return;
+    if (!excalidrawAPI) return;
 
-    const elements = excalidrawRef.current.getSceneElements();
-    const appState = excalidrawRef.current.getAppState();
-    const files = excalidrawRef.current.getFiles();
+    const elements = excalidrawAPI.getSceneElements();
+    const appState = excalidrawAPI.getAppState();
+    const files = excalidrawAPI.getFiles();
 
     const canvasData = {
       elements,
@@ -208,20 +217,41 @@ export default function CanvasPage({ params }: { params: Promise<{ id: string }>
         </div>
       </div>
 
-      {/* Canvas */}
+      {/* Canvas with AI Sidebar */}
       <div className="flex-1 relative">
-        {typeof window !== "undefined" && (
-          <Excalidraw
-            ref={excalidrawRef}
-            onChange={handleChange}
-            initialData={project.canvas_data || undefined}
-          />
-        )}
-      </div>
+        <ResizablePanelGroup direction="horizontal" style={{ height: '100%' }}>
+          {/* Left Panel: Excalidraw Canvas */}
+          <ResizablePanel defaultSize={70} minSize={30} style={{ height: '100%' }}>
+            <div style={{ height: '100%', width: '100%', position: 'relative' }}>
+              {typeof window !== "undefined" && (
+                <Excalidraw
+                  excalidrawAPI={(api: any) => {
+                    excalidrawRef.current = api;
+                    if (api && !excalidrawAPI) {
+                      setExcalidrawAPI(api);
+                      console.log("[Canvas] Excalidraw API initialized");
+                    }
+                  }}
+                  onChange={handleChange}
+                  initialData={project.canvas_data || undefined}
+                />
+              )}
+            </div>
+          </ResizablePanel>
 
-      {/* Info banner */}
-      <div className="px-4 py-2 bg-purple-500/10 border-t border-purple-500/20 text-xs text-gray-300 text-center">
-        💡 Auto-saves every 3 seconds | Click "Save Version" to create a snapshot
+          {/* Resize Handle */}
+          <ResizableHandle className="w-1 bg-slate-800 hover:bg-violet-500 transition-colors" />
+
+          {/* Right Panel: Chat Sidebar */}
+          <ResizablePanel defaultSize={30} minSize={20} maxSize={50} style={{ height: '100%' }}>
+            <ChatSidebar excalidrawAPI={excalidrawAPI} />
+          </ResizablePanel>
+        </ResizablePanelGroup>
+
+        {/* Info banner overlay */}
+        <div className="absolute bottom-0 left-0 right-0 px-4 py-2 bg-purple-500/10 border-t border-purple-500/20 text-xs text-gray-300 text-center pointer-events-none z-10">
+          💡 Auto-saves every 3 seconds | Click "Save Version" to create a snapshot
+        </div>
       </div>
     </div>
   );
