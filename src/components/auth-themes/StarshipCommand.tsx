@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label";
 import { createClient } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
 import CosmicLoader from "@/components/CosmicLoader";
+import { Eye, EyeOff } from "lucide-react";
 
 export default function StarshipCommand() {
   const [isLogin, setIsLogin] = useState(true);
@@ -16,6 +17,8 @@ export default function StarshipCommand() {
   const [name, setName] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [purpleStars, setPurpleStars] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   const router = useRouter();
   const supabase = createClient();
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -73,7 +76,21 @@ export default function StarshipCommand() {
           const size = (1 - star.z / 1000) * star.size * 2;
           const opacity = 1 - star.z / 1000;
 
-          ctx.fillStyle = `rgba(255, 255, 255, ${opacity})`;
+          // Use purple gradient when purpleStars is true
+          if (purpleStars) {
+            // Vary between purple, violet, and indigo with reduced opacity
+            const fadedOpacity = opacity * 0.4; // Fade to 40% of original
+            const colorVariant = (star.x + star.y) % 3;
+            if (colorVariant === 0) {
+              ctx.fillStyle = `rgba(168, 85, 247, ${fadedOpacity})`; // Purple
+            } else if (colorVariant === 1) {
+              ctx.fillStyle = `rgba(139, 92, 246, ${fadedOpacity})`; // Violet
+            } else {
+              ctx.fillStyle = `rgba(129, 140, 248, ${fadedOpacity})`; // Indigo
+            }
+          } else {
+            ctx.fillStyle = `rgba(255, 255, 255, ${opacity})`; // White color
+          }
           ctx.beginPath();
           ctx.arc(px, py, size, 0, Math.PI * 2);
           ctx.fill();
@@ -84,7 +101,7 @@ export default function StarshipCommand() {
     };
 
     animate();
-  }, []);
+  }, [purpleStars]);
 
   const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -153,6 +170,14 @@ export default function StarshipCommand() {
         </div>
       </div>
 
+      {/* Purple Stars Toggle Button */}
+      <button
+        onClick={() => setPurpleStars(!purpleStars)}
+        className="absolute bottom-6 right-6 font-mono text-xs text-gray-500 hover:text-gray-300 transition-colors uppercase tracking-wider bg-black/40 backdrop-blur-sm px-3 py-2 rounded border border-white/10 hover:border-white/20"
+      >
+        {purpleStars ? "White Stars" : "Purple Stars"}
+      </button>
+
       {/* Main Form Container */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
@@ -206,13 +231,26 @@ export default function StarshipCommand() {
                 <Label className="text-gray-400 text-xs uppercase tracking-wider font-light">
                   Password
                 </Label>
-                <Input
-                  type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="mt-2 bg-white/5 border-white/10 text-white focus:border-white/30 focus:ring-0 placeholder:text-gray-600 font-light"
-                  required
-                />
+                <div className="relative mt-2">
+                  <Input
+                    type={showPassword ? "text" : "password"}
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    className="bg-white/5 border-white/10 text-white focus:border-white/30 focus:ring-0 placeholder:text-gray-600 font-light pr-10"
+                    required
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-300 transition-colors"
+                  >
+                    {showPassword ? (
+                      <Eye className="w-4 h-4" />
+                    ) : (
+                      <EyeOff className="w-4 h-4" />
+                    )}
+                  </button>
+                </div>
               </div>
 
               {error && (

@@ -244,7 +244,7 @@ export function ChatSidebar({ excalidrawAPI }: ChatSidebarProps) {
             className={cn(
               "min-h-[80px] max-h-[200px] resize-none",
               "bg-slate-800/50 border-slate-700/50",
-              "focus:border-violet-500/50 focus:ring-violet-500/20",
+              "focus:border-white/50 focus:ring-white/20",
               "placeholder:text-slate-500"
             )}
             disabled={isLoading}
@@ -254,8 +254,7 @@ export function ChatSidebar({ excalidrawAPI }: ChatSidebarProps) {
             disabled={!input.trim() || isLoading}
             className={cn(
               "h-auto px-4",
-              "bg-gradient-to-r from-violet-500 to-purple-600",
-              "hover:from-violet-600 hover:to-purple-700",
+              "bg-white/15 hover:bg-white/25 border border-white/30",
               "disabled:opacity-50 disabled:cursor-not-allowed"
             )}
           >

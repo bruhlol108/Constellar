@@ -60,7 +60,7 @@ export function ChatMessage({ message }: ChatMessageProps) {
       className={cn(
         "flex gap-3 p-4 rounded-lg transition-colors",
         isUser
-          ? "bg-violet-500/10 ml-8"
+          ? "bg-white/10 ml-8"
           : "bg-slate-800/50 mr-8"
       )}
     >
@@ -69,8 +69,8 @@ export function ChatMessage({ message }: ChatMessageProps) {
         className={cn(
           "flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center",
           isUser
-            ? "bg-violet-500/20 text-violet-400"
-            : "bg-gradient-to-br from-violet-500 to-purple-600 text-white"
+            ? "bg-white/20 text-white"
+            : "bg-gradient-to-br from-white/30 to-white/20 text-white border border-white/20"
         )}
       >
         {isUser ? (
@@ -87,7 +87,7 @@ export function ChatMessage({ message }: ChatMessageProps) {
           <span
             className={cn(
               "text-xs font-semibold uppercase tracking-wide",
-              isUser ? "text-violet-400" : "text-purple-400"
+              isUser ? "text-white/80" : "text-white/70"
             )}
           >
             {isUser ? "You" : "Constellar AI"}
@@ -118,8 +118,8 @@ export function ChatMessage({ message }: ChatMessageProps) {
               <div className="mt-2 p-3 bg-slate-900/50 border border-slate-700/50 rounded-lg space-y-1.5">
                 {message.actions.map((action, index) => (
                   <div key={index} className="flex items-start gap-2 text-xs">
-                    <div className="flex-shrink-0 w-4 h-4 mt-0.5 rounded-full bg-violet-500/20 flex items-center justify-center">
-                      <div className="w-1.5 h-1.5 rounded-full bg-violet-400" />
+                    <div className="flex-shrink-0 w-4 h-4 mt-0.5 rounded-full bg-white/20 flex items-center justify-center">
+                      <div className="w-1.5 h-1.5 rounded-full bg-white/70" />
                     </div>
                     <span className="text-slate-300 leading-relaxed">{formatAction(action, index)}</span>
                   </div>
@@ -133,7 +133,7 @@ export function ChatMessage({ message }: ChatMessageProps) {
         <div
           className={cn(
             "text-sm leading-relaxed prose prose-invert prose-sm max-w-none",
-            "prose-p:my-2 prose-code:text-violet-400 prose-code:bg-slate-800/50 prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded",
+            "prose-p:my-2 prose-code:text-white/80 prose-code:bg-slate-800/50 prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded",
             "prose-pre:bg-slate-900/50 prose-pre:border prose-pre:border-slate-700/50"
           )}
         >

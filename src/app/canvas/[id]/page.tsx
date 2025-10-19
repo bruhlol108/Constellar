@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import dynamic from "next/dynamic";
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Sparkles, Save, Check, LogOut } from "lucide-react";
 import Link from "next/link";
 import { ChatSidebar } from "@/components/ChatSidebar";
@@ -31,8 +32,11 @@ export default function CanvasPage({ params }: { params: Promise<{ id: string }>
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [excalidrawAPI, setExcalidrawAPI] = useState<any>(null);
+  const [isEditingTitle, setIsEditingTitle] = useState(false);
+  const [editedTitle, setEditedTitle] = useState("");
   const excalidrawRef = useRef<any>(null);
   const autoSaveTimerRef = useRef<any>(null);
+  const titleInputRef = useRef<HTMLInputElement>(null);
   const router = useRouter();
   const supabase = createClient();
 
@@ -161,6 +165,53 @@ export default function CanvasPage({ params }: { params: Promise<{ id: string }>
     router.push("/auth");
   };
 
+  const handleTitleDoubleClick = () => {
+    setIsEditingTitle(true);
+    setEditedTitle(project.title);
+  };
+
+  const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setEditedTitle(e.target.value);
+  };
+
+  const handleTitleSave = async () => {
+    if (!editedTitle.trim() || editedTitle === project.title) {
+      setIsEditingTitle(false);
+      return;
+    }
+
+    try {
+      await fetch(`/api/projects/${projectId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ title: editedTitle.trim() }),
+      });
+
+      setProject({ ...project, title: editedTitle.trim() });
+      setIsEditingTitle(false);
+    } catch (error) {
+      console.error("Error updating title:", error);
+      alert("Failed to update title");
+      setIsEditingTitle(false);
+    }
+  };
+
+  const handleTitleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter") {
+      handleTitleSave();
+    } else if (e.key === "Escape") {
+      setIsEditingTitle(false);
+    }
+  };
+
+  // Focus input when editing starts
+  useEffect(() => {
+    if (isEditingTitle && titleInputRef.current) {
+      titleInputRef.current.focus();
+      titleInputRef.current.select();
+    }
+  }, [isEditingTitle]);
+
   if (loading || !user || !project) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
@@ -171,16 +222,45 @@ export default function CanvasPage({ params }: { params: Promise<{ id: string }>
 
   return (
     <div className="h-screen flex flex-col bg-background">
-      {/* Top bar */}
+      {/* Top bar - Google Docs style */}
       <div className="flex items-center justify-between px-4 py-3 border-b border-white/10 bg-background/80 backdrop-blur-xl">
-        <Link href="/projects" className="flex items-center gap-2 group">
-          <Sparkles className="w-5 h-5 text-purple-500 group-hover:text-purple-400 transition-colors" />
-          <span className="font-bold bg-gradient-to-r from-white to-purple-400 bg-clip-text text-transparent">
-            {project.title}
-          </span>
-        </Link>
+        {/* Left: Logo/Brand */}
+        <div className="flex-1 flex items-center">
+          <Link href="/projects" className="flex items-center gap-2 group">
+            <Sparkles className="w-5 h-5 text-white/70 group-hover:text-white transition-colors" />
+            <span className="font-bold text-lg text-white/90">
+              CONSTELLAR
+            </span>
+          </Link>
+        </div>
 
-        <div className="flex items-center gap-3">
+        {/* Center: Editable Title */}
+        <div className="flex-1 flex items-center justify-center px-4">
+          {isEditingTitle ? (
+            <Input
+              ref={titleInputRef}
+              type="text"
+              value={editedTitle}
+              onChange={handleTitleChange}
+              onBlur={handleTitleSave}
+              onKeyDown={handleTitleKeyDown}
+              className="max-w-md text-center bg-white/5 border-white/10 text-white focus:border-white/30 focus:ring-0"
+            />
+          ) : (
+            <button
+              onDoubleClick={handleTitleDoubleClick}
+              className="max-w-md px-4 py-1.5 rounded hover:bg-white/5 transition-colors cursor-text"
+              title="Double-click to edit"
+            >
+              <span className="font-semibold text-white/90">
+                {project.title}
+              </span>
+            </button>
+          )}
+        </div>
+
+        {/* Right: Controls */}
+        <div className="flex-1 flex items-center justify-end gap-3">
           {saving && (
             <span className="text-sm text-gray-400 flex items-center gap-2">
               <CosmicLoader size="sm" />
@@ -199,7 +279,7 @@ export default function CanvasPage({ params }: { params: Promise<{ id: string }>
             onClick={handleManualSave}
             disabled={saving}
             size="sm"
-            className="bg-purple-600 hover:bg-purple-700"
+            className="bg-white/15 hover:bg-white/25 border border-white/30"
           >
             <Save className="w-4 h-4 mr-2" />
             Save Version
@@ -241,7 +321,7 @@ export default function CanvasPage({ params }: { params: Promise<{ id: string }>
           </ResizablePanel>
 
           {/* Resize Handle */}
-          <ResizableHandle className="w-1 bg-slate-800 hover:bg-violet-500 transition-colors" />
+          <ResizableHandle className="w-1 bg-slate-800 hover:bg-white/30 transition-colors" />
 
           {/* Right Panel: Chat Sidebar */}
           <ResizablePanel defaultSize={30} minSize={20} maxSize={50} className="h-full overflow-hidden">

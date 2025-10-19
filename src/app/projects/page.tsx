@@ -6,9 +6,10 @@ import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Plus, Trash2, Edit, Save, X, Pencil, LogOut } from "lucide-react";
+import { Plus, Trash2, Edit, Save, X, Pencil, LogOut, AlertTriangle } from "lucide-react";
 import Link from "next/link";
 import CosmicLoader from "@/components/CosmicLoader";
+import { motion, AnimatePresence } from "framer-motion";
 
 interface Constellation {
   id: string;
@@ -36,6 +37,7 @@ export default function ConstellationsPage() {
   const [loading, setLoading] = useState(true);
   const [creating, setCreating] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
   const [newTitle, setNewTitle] = useState("");
   const [editTitle, setEditTitle] = useState("");
   const [stars, setStars] = useState<Star[]>([]);
@@ -210,11 +212,11 @@ export default function ConstellationsPage() {
     }
   };
 
-  const deleteConstellation = async (id: string) => {
-    if (!confirm("Are you sure you want to delete this constellation?")) return;
+  const confirmDelete = async () => {
+    if (!deleteConfirmId) return;
 
     try {
-      const response = await fetch(`/api/projects/${id}`, {
+      const response = await fetch(`/api/projects/${deleteConfirmId}`, {
         method: "DELETE",
       });
 
@@ -223,6 +225,8 @@ export default function ConstellationsPage() {
       }
     } catch (error) {
       console.error("Error deleting constellation:", error);
+    } finally {
+      setDeleteConfirmId(null);
     }
   };
 
@@ -293,38 +297,28 @@ export default function ConstellationsPage() {
         })}
       </div>
 
-      {/* Minimal HUD elements */}
-      <div className="absolute top-6 left-6 font-mono text-xs text-gray-500 space-y-1 z-50">
-        <div>SYS.ONLINE</div>
-        <div className="text-gray-600">LOC: WORKSPACE</div>
-      </div>
+      {/* Header - Full width with corner alignment */}
+      <header className="fixed top-0 left-0 right-0 z-50 border-b border-white/10 bg-black/40 backdrop-blur-xl">
+        <div className="flex items-center justify-between px-6 py-4">
+          {/* Left: Brand */}
+          <Link href="/" className="flex items-center gap-2 group">
+            <span className="text-xl font-light tracking-[0.2em] text-white/90 uppercase">
+              CONSTELLAR
+            </span>
+          </Link>
 
-      <div className="absolute top-6 right-6 font-mono text-xs text-gray-500 text-right space-y-1 z-50">
-        <div>USER.ACTIVE</div>
-        <div className="text-gray-600">{new Date().toLocaleTimeString()}</div>
-      </div>
-
-      {/* Header */}
-      <header className="fixed top-0 w-full z-40 border-b border-white/10 bg-black/40 backdrop-blur-xl">
-        <div className="max-w-7xl mx-auto px-6 py-4">
-          <div className="flex items-center justify-between">
-            <Link href="/" className="flex items-center gap-2 group">
-              <span className="text-xl font-light tracking-[0.2em] text-white/90 uppercase">
-                Constellar
-              </span>
-            </Link>
-            <div className="flex items-center gap-4">
-              <span className="text-xs font-mono text-gray-500 uppercase tracking-wider">{user.email}</span>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={handleSignOut}
-                className="border border-white/20 bg-white/5 hover:bg-red-500/20 text-gray-400 hover:text-red-400 hover:border-red-500/50 font-mono text-xs uppercase tracking-wider transition-all duration-200"
-              >
-                <LogOut className="w-3 h-3 mr-2" />
-                Exit
-              </Button>
-            </div>
+          {/* Right: User info and sign out */}
+          <div className="flex items-center gap-4">
+            <span className="text-xs font-mono text-gray-500 uppercase tracking-wider">{user.email}</span>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleSignOut}
+              className="border border-white/20 bg-white/5 hover:bg-red-500/20 text-gray-400 hover:text-red-400 hover:border-red-500/50 font-mono text-xs uppercase tracking-wider transition-all duration-200"
+            >
+              <LogOut className="w-3 h-3 mr-2" />
+              Exit
+            </Button>
           </div>
         </div>
       </header>
@@ -438,49 +432,45 @@ export default function ConstellationsPage() {
                     </div>
                   ) : (
                     <>
-                      <CardTitle className="text-lg font-light text-white tracking-wide group-hover:text-white/95 transition-colors">{constellation.title}</CardTitle>
-                      <CardDescription className="text-gray-400 font-mono text-xs uppercase tracking-wider">
-                        Charted {new Date(constellation.created_at).toLocaleDateString()}
-                      </CardDescription>
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="flex-1">
+                          <CardTitle className="text-lg font-light text-white tracking-wide group-hover:text-white/95 transition-colors">{constellation.title}</CardTitle>
+                          <CardDescription className="text-gray-400 font-mono text-xs uppercase tracking-wider mt-1">
+                            Charted {new Date(constellation.created_at).toLocaleDateString()}
+                          </CardDescription>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <button
+                            onClick={() => {
+                              setEditingId(constellation.id);
+                              setEditTitle(constellation.title);
+                            }}
+                            className="text-gray-500 hover:text-white transition-colors p-1"
+                          >
+                            <Edit className="w-4 h-4" />
+                          </button>
+                          <button
+                            onClick={() => setDeleteConfirmId(constellation.id)}
+                            className="text-red-400/60 hover:text-red-300 transition-colors p-1"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
+                      </div>
                     </>
                   )}
                 </CardHeader>
                 {editingId !== constellation.id && (
                   <CardContent>
-                    <div className="space-y-2">
-                      <Link href={`/canvas/${constellation.id}`} className="block">
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          className="w-full bg-white/15 hover:bg-white/25 hover:shadow-md hover:shadow-white/10 text-white border border-white/30 font-mono text-xs uppercase tracking-widest transition-all duration-300 hover:scale-[1.02]"
-                        >
-                          <Pencil className="w-3 h-3 mr-1" />
-                          Launch
-                        </Button>
-                      </Link>
-                      <div className="flex gap-2">
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          onClick={() => {
-                            setEditingId(constellation.id);
-                            setEditTitle(constellation.title);
-                          }}
-                          className="flex-1 border border-white/20 bg-white/5 hover:bg-white/15 text-gray-300 hover:text-white font-mono text-xs uppercase tracking-wider transition-all duration-200"
-                        >
-                          <Edit className="w-3 h-3 mr-1" />
-                          Rename
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          onClick={() => deleteConstellation(constellation.id)}
-                          className="border border-white/20 bg-white/5 hover:bg-red-500/20 text-gray-400 hover:text-red-400 hover:border-red-500/50 font-mono text-xs transition-all duration-200"
-                        >
-                          <Trash2 className="w-3 h-3" />
-                        </Button>
-                      </div>
-                    </div>
+                    <Link href={`/canvas/${constellation.id}`} className="block">
+                      <Button
+                        variant="ghost"
+                        className="w-full h-11 bg-gradient-to-r from-white/10 via-white/15 to-white/10 hover:from-white/20 hover:via-white/25 hover:to-white/20 hover:shadow-xl hover:shadow-white/10 text-white border border-white/30 hover:border-white/40 font-mono text-sm uppercase tracking-widest transition-all duration-300 hover:scale-[1.02] flex items-center justify-center gap-3"
+                      >
+                        <Pencil className="w-4 h-4" />
+                        <span>Launch Workspace</span>
+                      </Button>
+                    </Link>
                   </CardContent>
                 )}
               </Card>
@@ -488,6 +478,67 @@ export default function ConstellationsPage() {
           </div>
         )}
       </main>
+
+      {/* Delete Confirmation Modal */}
+      <AnimatePresence>
+        {deleteConfirmId && (
+          <>
+            {/* Backdrop */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setDeleteConfirmId(null)}
+              className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50"
+            />
+
+            {/* Modal */}
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 w-full max-w-md"
+            >
+              <div className="relative overflow-hidden rounded-lg border border-red-500/30 bg-black/90 backdrop-blur-xl p-6 shadow-2xl shadow-red-500/20">
+                {/* Icon */}
+                <div className="flex justify-center mb-4">
+                  <div className="w-14 h-14 rounded-full bg-red-500/20 border border-red-500/30 flex items-center justify-center">
+                    <AlertTriangle className="w-7 h-7 text-red-400" />
+                  </div>
+                </div>
+
+                {/* Title */}
+                <h3 className="text-xl font-light tracking-wide text-white text-center mb-2">
+                  Delete Constellation?
+                </h3>
+
+                {/* Description */}
+                <p className="text-gray-400 text-sm text-center mb-6 font-mono">
+                  This action cannot be undone. All data will be permanently removed.
+                </p>
+
+                {/* Buttons */}
+                <div className="flex gap-3">
+                  <Button
+                    onClick={() => setDeleteConfirmId(null)}
+                    variant="ghost"
+                    className="flex-1 border border-white/20 bg-white/5 hover:bg-white/10 text-white font-mono text-xs uppercase tracking-wider transition-all duration-200"
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    onClick={confirmDelete}
+                    variant="ghost"
+                    className="flex-1 border border-red-500/50 bg-red-500/10 hover:bg-red-500/20 text-red-400 hover:text-red-300 font-mono text-xs uppercase tracking-wider transition-all duration-200"
+                  >
+                    Delete
+                  </Button>
+                </div>
+              </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

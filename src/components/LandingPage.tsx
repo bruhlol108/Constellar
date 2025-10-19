@@ -12,6 +12,35 @@ export default function LandingPage() {
       {/* Starfield background */}
       <Starfield />
 
+      {/* Fixed Top Navigation Bar */}
+      <motion.nav
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6 }}
+        className="fixed top-0 left-0 right-0 z-50 px-6 py-4"
+      >
+        <div className="flex items-center justify-between">
+          {/* Left: Brand Name */}
+          <div className="flex items-center gap-2">
+            <Sparkles className="w-6 h-6 text-purple-400" />
+            <span className="text-2xl font-bold bg-gradient-to-r from-purple-400 to-violet-400 bg-clip-text text-transparent">
+              CONSTELLAR
+            </span>
+          </div>
+
+          {/* Right: Login Button */}
+          <Link href="/auth">
+            <Button
+              variant="outline"
+              className="border-purple-500/30 bg-purple-500/5 hover:bg-purple-500/10 text-purple-300 hover:text-purple-200 backdrop-blur-md"
+            >
+              Sign In
+              <ArrowRight className="w-4 h-4 ml-2" />
+            </Button>
+          </Link>
+        </div>
+      </motion.nav>
+
       {/* Content */}
       <div className="relative z-10">
         {/* Hero Section */}
@@ -38,10 +67,10 @@ export default function LandingPage() {
               initial={{ opacity: 0, y: -20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2, duration: 0.8 }}
-              className="mb-8"
+              className="mb-8 w-full flex justify-center"
             >
-              <h1 className="text-8xl md:text-9xl font-bold bg-gradient-to-r from-purple-400 via-violet-400 to-indigo-400 bg-clip-text text-transparent">
-                Constellar
+              <h1 className="text-8xl md:text-9xl font-light tracking-[0.3em] text-white/90" style={{ marginRight: '-0.3em' }}>
+                CONSTELLAR
               </h1>
             </motion.div>
 
