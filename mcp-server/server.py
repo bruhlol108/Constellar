@@ -795,8 +795,9 @@ def create_system_architecture(
 
     # Create connections
     for conn in connections:
-        from_id = conn['from']
-        to_id = conn['to']
+        # Handle both 'from' and 'from1' (Gemini sometimes uses from1 to avoid reserved keyword)
+        from_id = conn.get('from') or conn.get('from1')
+        to_id = conn.get('to')
 
         if from_id not in component_positions or to_id not in component_positions:
             continue
