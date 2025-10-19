@@ -524,4 +524,53 @@ def create_flowchart(
 
 
 if __name__ == "__main__":
-    mcp.run()
+    import sys
+
+    # For HTTP API mode, use FastAPI
+    if "--api" in sys.argv:
+        from fastapi import FastAPI
+        from fastapi.middleware.cors import CORSMiddleware
+        import uvicorn
+
+        app = FastAPI()
+
+        # Enable CORS
+        app.add_middleware(
+            CORSMiddleware,
+            allow_origins=["*"],
+            allow_credentials=True,
+            allow_methods=["*"],
+            allow_headers=["*"],
+        )
+
+        @app.post("/tools/{tool_name}")
+        async def call_tool(tool_name: str, args: dict):
+            """Call a tool by name with arguments"""
+            tools_map = {
+                "create_rectangle": create_rectangle,
+                "create_ellipse": create_ellipse,
+                "create_diamond": create_diamond,
+                "create_arrow": create_arrow,
+                "create_line": create_line,
+                "create_text_standalone": create_text_standalone,
+                "create_flowchart": create_flowchart,
+            }
+
+            if tool_name not in tools_map:
+                return {"error": f"Tool {tool_name} not found"}
+
+            try:
+                result = tools_map[tool_name](**args)
+                return result
+            except Exception as e:
+                return {"error": str(e)}
+
+        uvicorn.run(app, host="127.0.0.1", port=8000)
+
+    # Check if running with --sse flag for MCP SSE transport
+    elif "--sse" in sys.argv:
+        # Run as HTTP server with SSE transport
+        mcp.run(transport="sse")
+    else:
+        # Run as stdio for Claude Desktop
+        mcp.run()

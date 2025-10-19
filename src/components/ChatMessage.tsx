@@ -26,17 +26,28 @@ interface ChatMessageProps {
 
 // Helper to format action descriptions
 function formatAction(action: any, index: number): string {
+  const params = Object.entries(action)
+    .filter(([key]) => key !== 'type')
+    .map(([key, value]) => `${key}=${JSON.stringify(value)}`)
+    .join(', ');
+
   switch (action.type) {
-    case "create_shape":
-      return `Created ${action.shape} "${action.text || 'shape'}" at position (${action.x}, ${action.y})`;
-    case "create_text":
-      return `Created text "${action.text}" at position (${action.x}, ${action.y})`;
-    case "connect":
-      return `Connected element ${action.from} to element ${action.to}`;
+    case "create_rectangle":
+      return `create_rectangle(${params})`;
+    case "create_ellipse":
+      return `create_ellipse(${params})`;
+    case "create_diamond":
+      return `create_diamond(${params})`;
     case "create_arrow":
-      return `Created arrow from (${action.x}, ${action.y}) to (${action.endX}, ${action.endY})`;
+      return `create_arrow(${params})`;
+    case "create_line":
+      return `create_line(${params})`;
+    case "create_text_standalone":
+      return `create_text_standalone(${params})`;
+    case "create_flowchart":
+      return `create_flowchart(${params})`;
     default:
-      return `Action ${index + 1}: ${action.type}`;
+      return `${action.type}(${params})`;
   }
 }
 
@@ -83,7 +94,7 @@ export function ChatMessage({ message }: ChatMessageProps) {
           </span>
           {message.hasActions && (
             <span className="text-xs bg-green-500/20 text-green-400 px-2 py-0.5 rounded-full">
-              Generated Elements
+              Tool Calls
             </span>
           )}
         </div>

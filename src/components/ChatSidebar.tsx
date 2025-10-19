@@ -17,26 +17,10 @@ import type { Message } from "./ChatMessage";
 import { Button } from "./ui/button";
 import { Textarea } from "./ui/textarea";
 import { ScrollArea } from "./ui/scroll-area";
-import { Send, Loader2, Settings, Trash2 } from "lucide-react";
+import { Send, Loader2, Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils";
-// import { sendMessage, type GeminiMessage } from "@/lib/geminiClient";
-import { mockSendMessage } from "@/lib/mockGeminiClient";
-import { executeActions } from "@/lib/mcpAdapter";
 
 type ExcalidrawImperativeAPI = any;
-
-// Using mock API - no API key needed for now
-const USE_MOCK_API = true;
-import { Input } from "./ui/input";
-import { Label } from "./ui/label";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "./ui/dialog";
 
 interface ChatSidebarProps {
   excalidrawAPI: ExcalidrawImperativeAPI | null;
@@ -48,24 +32,14 @@ export function ChatSidebar({ excalidrawAPI }: ChatSidebarProps) {
       id: "welcome",
       role: "assistant",
       content:
-        "Hello! I'm your AI whiteboard assistant. Describe any diagram, flowchart, or visual concept you'd like to create, and I'll help bring it to life on the canvas.\n\n**Currently using mock API** - no API key needed! Try:\n\n- \"Draw a flowchart\"\n- \"Create a neural network diagram\"\n- \"Make a system diagram\"",
+        "Hello! I'm your AI whiteboard assistant powered by Google Gemini and Excalidraw. Describe any diagram, flowchart, or visual concept you'd like to create, and I'll help bring it to life on the canvas.\n\nTry:\n- \"Create a simple flowchart\"\n- \"Draw a system architecture diagram\"\n- \"Make a neural network diagram\"",
       timestamp: new Date(),
     },
   ]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [apiKey, setApiKey] = useState("");
-  const [showSettings, setShowSettings] = useState(false);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
-
-  // Load API key from localStorage on mount
-  useEffect(() => {
-    const savedKey = localStorage.getItem("gemini_api_key");
-    if (savedKey) {
-      setApiKey(savedKey);
-    }
-  }, []);
 
   // Auto-scroll to bottom when new messages arrive
   useEffect(() => {
@@ -83,12 +57,6 @@ export function ChatSidebar({ excalidrawAPI }: ChatSidebarProps) {
   useEffect(() => {
     textareaRef.current?.focus();
   }, []);
-
-  const handleSaveApiKey = (key: string) => {
-    setApiKey(key);
-    localStorage.setItem("gemini_api_key", key);
-    setShowSettings(false);
-  };
 
   const handleClearChat = () => {
     setMessages([
@@ -116,45 +84,84 @@ export function ChatSidebar({ excalidrawAPI }: ChatSidebarProps) {
     setInput("");
     setIsLoading(true);
 
-    // Add "thinking..." message
-    const thinkingId = `thinking-${Date.now()}`;
-    const thinkingMessage: Message = {
-      id: thinkingId,
-      role: "assistant",
-      content: "Thinking...",
-      timestamp: new Date(),
-    };
-    setMessages((prev) => [...prev, thinkingMessage]);
-
     try {
-      // Use mock API
-      const response = await mockSendMessage(userMessage.content);
+      // Call the API route
+      const response = await fetch("/api/chat", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          messages: [...messages, userMessage].map((msg) => ({
+            role: msg.role,
+            content: msg.content,
+          })),
+        }),
+      });
 
-      // Remove thinking message and add actual response
-      setMessages((prev) => prev.filter((msg) => msg.id !== thinkingId));
+      if (!response.ok) {
+        throw new Error(`API error: ${response.status}`);
+      }
 
-      // Create AI response message with actions
+      const data = await response.json();
+      console.log("[ChatSidebar] API response:", data);
+
+      // Create AI response message
       const aiMessage: Message = {
         id: (Date.now() + 1).toString(),
         role: "assistant",
-        content: response.text,
+        content: data.message || "Created elements on canvas",
         timestamp: new Date(),
-        hasActions: response.hasActions,
-        actions: response.actions,
+        hasActions: !!data.toolCalls && data.toolCalls.length > 0,
+        actions: data.toolCalls || [],
       };
+
+      // Log tool calls to console
+      if (data.toolCalls && data.toolCalls.length > 0) {
+        console.group("🎨 [ChatSidebar] Tool Calls Received");
+        data.toolCalls.forEach((call: any, index: number) => {
+          const params = Object.entries(call)
+            .filter(([key]) => key !== 'type')
+            .map(([key, value]) => `${key}=${JSON.stringify(value)}`)
+            .join(', ');
+          console.log(`${index + 1}. ${call.type}(${params})`);
+        });
+        console.groupEnd();
+      }
 
       setMessages((prev) => [...prev, aiMessage]);
 
-      // If there are actions, execute them on the whiteboard
-      if (response.actions && response.actions.length > 0) {
-        console.log("Executing actions:", response.actions);
-        executeActions(response.actions, excalidrawAPI);
+      // If there are elements, add them to the canvas
+      if (data.elements && data.elements.length > 0) {
+        console.group("🖼️ [ChatSidebar] Adding Elements to Canvas");
+        console.log(`📊 Received ${data.elements.length} element(s)`);
+        console.log("🎯 Excalidraw API ready:", !!excalidrawAPI);
+
+        if (!excalidrawAPI) {
+          console.error("❌ ExcalidrawAPI not available yet!");
+          console.groupEnd();
+        } else {
+          try {
+            const currentElements = excalidrawAPI.getSceneElements();
+            console.log(`📝 Current canvas has ${currentElements?.length || 0} element(s)`);
+
+            const newElements = [...(currentElements || []), ...data.elements];
+            console.log(`🔄 Updating canvas with ${newElements.length} total element(s)`);
+
+            excalidrawAPI.updateScene({
+              elements: newElements,
+            });
+
+            console.log("✅ Canvas updated successfully");
+            console.groupEnd();
+          } catch (error) {
+            console.error("❌ Error adding elements to canvas:", error);
+            console.groupEnd();
+          }
+        }
       }
     } catch (error) {
       console.error("Error sending message:", error);
-
-      // Remove thinking message
-      setMessages((prev) => prev.filter((msg) => msg.id !== thinkingId));
 
       const errorMessage: Message = {
         id: (Date.now() + 1).toString(),
@@ -199,48 +206,6 @@ export function ChatSidebar({ excalidrawAPI }: ChatSidebarProps) {
             >
               <Trash2 className="w-4 h-4" />
             </Button>
-
-            {/* Settings Dialog */}
-            <Dialog open={showSettings} onOpenChange={setShowSettings}>
-              <DialogTrigger asChild>
-                <Button variant="ghost" size="icon" title="Settings">
-                  <Settings className="w-4 h-4" />
-                </Button>
-              </DialogTrigger>
-              <DialogContent>
-                <DialogHeader>
-                  <DialogTitle>API Settings</DialogTitle>
-                  <DialogDescription>
-                    Configure your Google Gemini API key. Get one from{" "}
-                    <a
-                      href="https://makersuite.google.com/app/apikey"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-violet-400 hover:underline"
-                    >
-                      Google AI Studio
-                    </a>
-                    .
-                  </DialogDescription>
-                </DialogHeader>
-                <div className="space-y-4 py-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="api-key">Gemini API Key</Label>
-                    <Input
-                      id="api-key"
-                      type="password"
-                      placeholder="AIzaSy..."
-                      defaultValue={apiKey}
-                      onBlur={(e) => handleSaveApiKey(e.target.value)}
-                    />
-                  </div>
-                  <p className="text-xs text-slate-400">
-                    Your API key is stored locally in your browser and never
-                    sent to our servers.
-                  </p>
-                </div>
-              </DialogContent>
-            </Dialog>
           </div>
         </div>
       </div>

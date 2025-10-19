@@ -1,13 +1,24 @@
 "use client"
 
-import React, { useRef, forwardRef, useImperativeHandle } from "react"
+import React, { useRef, forwardRef, useImperativeHandle, useEffect } from "react"
 import { Excalidraw } from "@excalidraw/excalidraw"
 
-const ExcalidrawCanvas = forwardRef<any, {}>((_props, ref) => {
+interface ExcalidrawCanvasProps {
+  onAPIReady?: (api: any) => void;
+}
+
+const ExcalidrawCanvas = forwardRef<any, ExcalidrawCanvasProps>((props, ref) => {
   const excalidrawRef = useRef<any>(null)
 
   // Expose the Excalidraw API to parent components
   useImperativeHandle(ref, () => excalidrawRef.current)
+
+  // Also call onAPIReady when API is initialized
+  useEffect(() => {
+    if (excalidrawRef.current && props.onAPIReady) {
+      props.onAPIReady(excalidrawRef.current);
+    }
+  }, [excalidrawRef.current, props.onAPIReady]);
 
   const handleSaveJSON = async () => {
     try {
@@ -72,23 +83,8 @@ const ExcalidrawCanvas = forwardRef<any, {}>((_props, ref) => {
   }
 
   return (
-    <div style={{ height: "100vh", display: "flex", flexDirection: "column" }}>
-      <div style={{ padding: 12, display: "flex", gap: 8, background: "var(--background, #fff)" }}>
-        <button onClick={handleSaveJSON} className="btn">
-          Save JSON
-        </button>
-        <label style={{ display: "inline-flex", alignItems: "center" }}>
-          <input type="file" accept="application/json" onChange={handleLoadJSON} style={{ display: "none" }} />
-          <span className="btn">Load JSON</span>
-        </label>
-        <button onClick={handleExportPNG} className="btn">
-          Export PNG
-        </button>
-      </div>
-
-      <div style={{ flex: 1 }}>
-        <Excalidraw excalidrawAPI={(api: any) => { excalidrawRef.current = api }} />
-      </div>
+    <div style={{ height: "100%", width: "100%" }}>
+      <Excalidraw excalidrawAPI={(api: any) => { excalidrawRef.current = api }} />
     </div>
   )
 })

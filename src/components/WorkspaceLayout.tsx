@@ -30,7 +30,7 @@ const ExcalidrawCanvas = dynamic(
 );
 
 export function WorkspaceLayout() {
-  const excalidrawRef = useRef<any>(null);
+  const [excalidrawAPI, setExcalidrawAPI] = useState<any>(null);
 
   return (
     <div className="h-screen w-screen flex flex-col overflow-hidden bg-slate-950">
@@ -57,7 +57,7 @@ export function WorkspaceLayout() {
 
         <div className="flex items-center gap-2">
           <div className="px-3 py-1 bg-green-500/10 text-green-400 text-xs font-medium rounded-full border border-green-500/20">
-            Ready
+            {excalidrawAPI ? "Ready" : "Loading..."}
           </div>
         </div>
       </div>
@@ -68,7 +68,14 @@ export function WorkspaceLayout() {
           {/* Left Panel: Excalidraw Canvas */}
           <ResizablePanel defaultSize={70} minSize={30} style={{ height: '100%' }}>
             <div style={{ height: '100%', width: '100%' }}>
-              <ExcalidrawCanvas ref={excalidrawRef} />
+              <ExcalidrawCanvas
+                onAPIReady={(api) => {
+                  if (api && !excalidrawAPI) {
+                    setExcalidrawAPI(api);
+                    console.log("[WorkspaceLayout] Excalidraw API initialized", api);
+                  }
+                }}
+              />
             </div>
           </ResizablePanel>
 
@@ -77,7 +84,7 @@ export function WorkspaceLayout() {
 
           {/* Right Panel: Chat Sidebar */}
           <ResizablePanel defaultSize={30} minSize={20} maxSize={50} style={{ height: '100%' }}>
-            <ChatSidebar excalidrawAPI={excalidrawRef.current} />
+            <ChatSidebar excalidrawAPI={excalidrawAPI} />
           </ResizablePanel>
         </ResizablePanelGroup>
       </div>
