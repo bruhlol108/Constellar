@@ -17,8 +17,9 @@ import type { Message } from "./ChatMessage";
 import { Button } from "./ui/button";
 import { Textarea } from "./ui/textarea";
 import { ScrollArea } from "./ui/scroll-area";
-import { Send, Loader2, Trash2 } from "lucide-react";
+import { Send, Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import CosmicLoader from "./CosmicLoader";
 
 type ExcalidrawImperativeAPI = any;
 
@@ -219,8 +220,8 @@ export function ChatSidebar({ excalidrawAPI }: ChatSidebarProps) {
             ))}
             {isLoading && (
               <div className="flex items-center gap-3 p-4 rounded-lg bg-slate-800/50 mr-8">
-                <div className="flex-shrink-0 w-8 h-8 rounded-full bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center">
-                  <Loader2 className="w-5 h-5 text-white animate-spin" />
+                <div className="flex-shrink-0">
+                  <CosmicLoader size="sm" />
                 </div>
                 <div className="text-sm text-slate-400">
                   Constellar AI is thinking...
@@ -259,7 +260,7 @@ export function ChatSidebar({ excalidrawAPI }: ChatSidebarProps) {
             )}
           >
             {isLoading ? (
-              <Loader2 className="w-5 h-5 animate-spin" />
+              <CosmicLoader size="sm" />
             ) : (
               <Send className="w-5 h-5" />
             )}

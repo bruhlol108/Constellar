@@ -5,9 +5,10 @@ import { useRouter } from "next/navigation";
 import dynamic from "next/dynamic";
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
-import { Sparkles, Save, Loader2, Check, LogOut } from "lucide-react";
+import { Sparkles, Save, Check, LogOut } from "lucide-react";
 import Link from "next/link";
 import { ChatSidebar } from "@/components/ChatSidebar";
+import CosmicLoader from "@/components/CosmicLoader";
 import {
   ResizableHandle,
   ResizablePanel,
@@ -163,7 +164,7 @@ export default function CanvasPage({ params }: { params: Promise<{ id: string }>
   if (loading || !user || !project) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
-        <Loader2 className="w-8 h-8 animate-spin text-purple-500" />
+        <CosmicLoader size="lg" />
       </div>
     );
   }
@@ -182,7 +183,7 @@ export default function CanvasPage({ params }: { params: Promise<{ id: string }>
         <div className="flex items-center gap-3">
           {saving && (
             <span className="text-sm text-gray-400 flex items-center gap-2">
-              <Loader2 className="w-4 h-4 animate-spin" />
+              <CosmicLoader size="sm" />
               Saving...
             </span>
           )}

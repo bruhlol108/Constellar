@@ -1,14 +1,14 @@
 "use client";
 
-import { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Sparkles, Plus, Trash2, Edit, Save, X, Loader2, Pencil, LogOut } from "lucide-react";
+import { Plus, Trash2, Edit, Save, X, Pencil, LogOut } from "lucide-react";
 import Link from "next/link";
+import CosmicLoader from "@/components/CosmicLoader";
 
 interface Constellation {
   id: string;
@@ -19,6 +19,17 @@ interface Constellation {
   updated_at: string;
 }
 
+interface Star {
+  id: number;
+  x: number;
+  y: number;
+  size: number;
+  opacity: number;
+  duration: number;
+  delay: number;
+  layer: number; // For parallax effect
+}
+
 export default function ConstellationsPage() {
   const [user, setUser] = useState<any>(null);
   const [constellations, setConstellations] = useState<Constellation[]>([]);
@@ -27,9 +38,35 @@ export default function ConstellationsPage() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [newTitle, setNewTitle] = useState("");
   const [editTitle, setEditTitle] = useState("");
+  const [stars, setStars] = useState<Star[]>([]);
   const router = useRouter();
   const supabase = createClient();
   const canvasRef = useRef<HTMLCanvasElement>(null);
+
+  // Generate random stars on mount
+  useEffect(() => {
+    const generateStars = () => {
+      const newStars: Star[] = [];
+      const starCount = 35; // More stars with varied sizes
+
+      for (let i = 0; i < starCount; i++) {
+        newStars.push({
+          id: i,
+          x: Math.random() * 100, // 0-100%
+          y: Math.random() * 100, // 0-100%
+          size: Math.random() * 3 + 0.5, // 0.5 to 3.5px - more variety
+          opacity: Math.random() * 0.4 + 0.4, // 0.4 to 0.8
+          duration: Math.random() * 2 + 3, // 3-5s
+          delay: Math.random() * 3, // 0-3s
+          layer: Math.floor(Math.random() * 3), // 0, 1, or 2 for parallax layers
+        });
+      }
+
+      setStars(newStars);
+    };
+
+    generateStars();
+  }, []);
 
   useEffect(() => {
     // Check auth
@@ -197,7 +234,7 @@ export default function ConstellationsPage() {
   if (!user) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-black">
-        <Loader2 className="w-8 h-8 animate-spin text-white/60" />
+        <CosmicLoader size="lg" />
       </div>
     );
   }
@@ -212,6 +249,49 @@ export default function ConstellationsPage() {
 
       {/* Subtle vignette */}
       <div className="absolute inset-0 bg-gradient-radial from-transparent via-transparent to-black/60" />
+
+      {/* Dynamic randomized decorative stars */}
+      <div className="absolute inset-0 pointer-events-none overflow-hidden z-10">
+        <style jsx>{`
+          @keyframes drift {
+            0% {
+              transform: translate(0, 0);
+            }
+            100% {
+              transform: translate(-100vw, 50vh);
+            }
+          }
+        `}</style>
+        {stars.map((star) => {
+          // Calculate enhanced glow intensity based on size
+          const glowSize = Math.max(12, star.size * 6);
+          const glowSpread = glowSize * 3;
+          const glowOuter = glowSpread * 1.5;
+
+          // Different drift speeds based on layer (closer = faster)
+          const driftDuration = 40 - (star.layer * 10); // Layer 0: 40s, Layer 1: 30s, Layer 2: 20s
+
+          return (
+            <div
+              key={star.id}
+              className="absolute bg-white rounded-full animate-pulse"
+              style={{
+                top: `${star.y}%`,
+                left: `${star.x}%`,
+                width: `${star.size}px`,
+                height: `${star.size}px`,
+                opacity: star.opacity,
+                boxShadow: `
+                  0 0 ${glowSize}px rgba(255,255,255,0.9),
+                  0 0 ${glowSpread}px rgba(255,255,255,0.6),
+                  0 0 ${glowOuter}px rgba(255,255,255,0.3)
+                `,
+                animation: `pulse ${star.duration}s ease-in-out ${star.delay}s infinite, drift ${driftDuration}s linear infinite`,
+              }}
+            />
+          );
+        })}
+      </div>
 
       {/* Minimal HUD elements */}
       <div className="absolute top-6 left-6 font-mono text-xs text-gray-500 space-y-1 z-50">
@@ -236,10 +316,10 @@ export default function ConstellationsPage() {
             <div className="flex items-center gap-4">
               <span className="text-xs font-mono text-gray-500 uppercase tracking-wider">{user.email}</span>
               <Button
-                variant="outline"
+                variant="ghost"
                 size="sm"
                 onClick={handleSignOut}
-                className="border-white/20 bg-white/5 hover:bg-white/10 text-gray-400 hover:text-white font-mono text-xs uppercase tracking-wider"
+                className="border border-white/20 bg-white/5 hover:bg-red-500/20 text-gray-400 hover:text-red-400 hover:border-red-500/50 font-mono text-xs uppercase tracking-wider transition-all duration-200"
               >
                 <LogOut className="w-3 h-3 mr-2" />
                 Exit
@@ -252,23 +332,23 @@ export default function ConstellationsPage() {
       {/* Main content */}
       <main className="pt-24 pb-12 px-6 max-w-7xl mx-auto relative z-10">
         <div className="mb-10 text-center">
-          <h1 className="text-5xl font-light tracking-[0.3em] text-white/90 mb-2">
+          <h1 className="text-5xl font-light tracking-[0.3em] text-white mb-2 drop-shadow-[0_0_20px_rgba(255,255,255,0.3)]">
             CONSTELLATIONS
           </h1>
-          <div className="h-px w-32 mx-auto bg-gradient-to-r from-transparent via-white/40 to-transparent mb-4" />
-          <p className="text-gray-500 text-sm font-mono uppercase tracking-wider">
+          <div className="h-px w-32 mx-auto bg-gradient-to-r from-transparent via-white/60 to-transparent shadow-[0_0_10px_rgba(255,255,255,0.3)] mb-4" />
+          <p className="text-gray-400 text-sm font-mono uppercase tracking-wider">
             Navigate your universe of AI-powered design systems
           </p>
         </div>
 
         {/* Create new constellation */}
-        <Card className="mb-8 border-white/10 bg-black/40 backdrop-blur-xl shadow-2xl">
+        <Card className="mb-8 border-white/20 bg-black/40 backdrop-blur-xl shadow-2xl shadow-white/5 hover:border-white/30 transition-all duration-300">
           <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-white/90 font-light tracking-wide uppercase text-sm">
-              <Plus className="w-4 h-4 text-gray-400" />
+            <CardTitle className="flex items-center gap-2 text-white font-light tracking-wide uppercase text-sm">
+              <Plus className="w-4 h-4 text-white/70" />
               Create New Constellation
             </CardTitle>
-            <CardDescription className="text-gray-500 text-xs font-mono uppercase tracking-wider">
+            <CardDescription className="text-gray-400 text-xs font-mono uppercase tracking-wider">
               Chart a new system in your design universe
             </CardDescription>
           </CardHeader>
@@ -280,16 +360,17 @@ export default function ConstellationsPage() {
                   value={newTitle}
                   onChange={(e) => setNewTitle(e.target.value)}
                   onKeyDown={(e) => e.key === "Enter" && createConstellation()}
-                  className="bg-white/5 border-white/10 text-white focus:border-white/30 focus:ring-0 placeholder:text-gray-600 font-light"
+                  className="bg-white/5 border-white/20 text-white focus:border-white/50 focus:ring-1 focus:ring-white/20 placeholder:text-gray-500 font-light transition-all"
                 />
               </div>
               <Button
                 onClick={createConstellation}
                 disabled={creating || !newTitle.trim()}
-                className="bg-white/10 hover:bg-white/20 text-white border border-white/20 font-light uppercase tracking-widest text-xs transition-all duration-300"
+                variant="ghost"
+                className="bg-white/15 hover:bg-white/25 hover:shadow-lg hover:shadow-white/10 text-white border border-white/30 font-light uppercase tracking-widest text-xs transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed hover:scale-[1.02]"
               >
                 {creating ? (
-                  <Loader2 className="w-3 h-3 animate-spin" />
+                  <CosmicLoader size="sm" />
                 ) : (
                   <>
                     <Plus className="w-3 h-3 mr-2" />
@@ -304,7 +385,7 @@ export default function ConstellationsPage() {
         {/* Constellations list */}
         {loading ? (
           <div className="flex justify-center py-12">
-            <Loader2 className="w-8 h-8 animate-spin text-white/60" />
+            <CosmicLoader size="lg" />
           </div>
         ) : constellations.length === 0 ? (
           <Card className="border-white/10 bg-black/40 backdrop-blur-xl shadow-2xl">
@@ -319,7 +400,7 @@ export default function ConstellationsPage() {
             {constellations.map((constellation) => (
               <Card
                 key={constellation.id}
-                className="border-white/10 bg-black/40 backdrop-blur-xl hover:border-white/30 transition-all shadow-2xl group"
+                className="border-white/20 bg-black/40 backdrop-blur-xl hover:border-white/40 hover:shadow-xl hover:shadow-white/5 transition-all shadow-2xl shadow-white/5 group"
               >
                 <CardHeader>
                   {editingId === constellation.id ? (
@@ -337,17 +418,18 @@ export default function ConstellationsPage() {
                       <div className="flex gap-2">
                         <Button
                           size="sm"
+                          variant="ghost"
                           onClick={() => updateConstellation(constellation.id)}
-                          className="bg-white/10 hover:bg-white/20 text-white border border-white/20 font-mono text-xs uppercase tracking-wider"
+                          className="bg-white/10 hover:bg-white/20 text-white border border-white/20 font-mono text-xs uppercase tracking-wider transition-all duration-200 hover:scale-[1.02]"
                         >
                           <Save className="w-3 h-3 mr-1" />
                           Save
                         </Button>
                         <Button
                           size="sm"
-                          variant="outline"
+                          variant="ghost"
                           onClick={() => setEditingId(null)}
-                          className="border-white/10 bg-white/5 hover:bg-white/10 text-gray-400 font-mono text-xs uppercase tracking-wider"
+                          className="border border-white/10 bg-white/5 hover:bg-white/10 text-gray-400 hover:text-white font-mono text-xs uppercase tracking-wider transition-all duration-200"
                         >
                           <X className="w-3 h-3 mr-1" />
                           Cancel
@@ -356,8 +438,8 @@ export default function ConstellationsPage() {
                     </div>
                   ) : (
                     <>
-                      <CardTitle className="text-lg font-light text-white/90 tracking-wide">{constellation.title}</CardTitle>
-                      <CardDescription className="text-gray-500 font-mono text-xs uppercase tracking-wider">
+                      <CardTitle className="text-lg font-light text-white tracking-wide group-hover:text-white/95 transition-colors">{constellation.title}</CardTitle>
+                      <CardDescription className="text-gray-400 font-mono text-xs uppercase tracking-wider">
                         Charted {new Date(constellation.created_at).toLocaleDateString()}
                       </CardDescription>
                     </>
@@ -366,10 +448,11 @@ export default function ConstellationsPage() {
                 {editingId !== constellation.id && (
                   <CardContent>
                     <div className="space-y-2">
-                      <Link href={`/canvas/${constellation.id}`}>
+                      <Link href={`/canvas/${constellation.id}`} className="block">
                         <Button
                           size="sm"
-                          className="w-full bg-white/10 hover:bg-white/20 text-white border border-white/20 font-mono text-xs uppercase tracking-widest transition-all duration-300"
+                          variant="ghost"
+                          className="w-full bg-white/15 hover:bg-white/25 hover:shadow-md hover:shadow-white/10 text-white border border-white/30 font-mono text-xs uppercase tracking-widest transition-all duration-300 hover:scale-[1.02]"
                         >
                           <Pencil className="w-3 h-3 mr-1" />
                           Launch
@@ -378,21 +461,21 @@ export default function ConstellationsPage() {
                       <div className="flex gap-2">
                         <Button
                           size="sm"
-                          variant="outline"
+                          variant="ghost"
                           onClick={() => {
                             setEditingId(constellation.id);
                             setEditTitle(constellation.title);
                           }}
-                          className="flex-1 border-white/10 bg-white/5 hover:bg-white/10 text-gray-400 hover:text-white font-mono text-xs uppercase tracking-wider"
+                          className="flex-1 border border-white/20 bg-white/5 hover:bg-white/15 text-gray-300 hover:text-white font-mono text-xs uppercase tracking-wider transition-all duration-200"
                         >
                           <Edit className="w-3 h-3 mr-1" />
                           Rename
                         </Button>
                         <Button
                           size="sm"
-                          variant="outline"
+                          variant="ghost"
                           onClick={() => deleteConstellation(constellation.id)}
-                          className="border-white/20 bg-white/5 hover:bg-white/10 text-gray-400 hover:text-white font-mono text-xs"
+                          className="border border-white/20 bg-white/5 hover:bg-red-500/20 text-gray-400 hover:text-red-400 hover:border-red-500/50 font-mono text-xs transition-all duration-200"
                         >
                           <Trash2 className="w-3 h-3" />
                         </Button>

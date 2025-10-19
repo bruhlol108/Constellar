@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { createClient } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
-import { Loader2 } from "lucide-react";
+import CosmicLoader from "@/components/CosmicLoader";
 
 export default function StarshipCommand() {
   const [isLogin, setIsLogin] = useState(true);
@@ -231,7 +231,7 @@ export default function StarshipCommand() {
                 className="w-full bg-white/10 hover:bg-white/20 text-white border border-white/20 font-light uppercase tracking-widest text-sm transition-all duration-300"
               >
                 {loading ? (
-                  <Loader2 className="animate-spin mx-auto" />
+                  <CosmicLoader size="sm" />
                 ) : (
                   isLogin ? "Access" : "Register"
                 )}
