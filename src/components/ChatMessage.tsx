@@ -3,13 +3,13 @@
  *
  * Displays a single message bubble in the chat sidebar.
  * Supports both user and AI messages with different styling.
+ * Shows collapsible "thinking" section for AI actions.
  */
 
 import { cn } from "@/lib/utils";
-
-import { Sparkles, User } from "lucide-react";
+import { Sparkles, User, ChevronDown, ChevronRight } from "lucide-react";
 import ReactMarkdown from "react-markdown";
-
+import { useState } from "react";
 
 export interface Message {
   id: string;
@@ -17,14 +17,32 @@ export interface Message {
   content: string;
   timestamp: Date;
   hasActions?: boolean;
+  actions?: any[];
 }
 
 interface ChatMessageProps {
   message: Message;
 }
 
+// Helper to format action descriptions
+function formatAction(action: any, index: number): string {
+  switch (action.type) {
+    case "create_shape":
+      return `Created ${action.shape} "${action.text || 'shape'}" at position (${action.x}, ${action.y})`;
+    case "create_text":
+      return `Created text "${action.text}" at position (${action.x}, ${action.y})`;
+    case "connect":
+      return `Connected element ${action.from} to element ${action.to}`;
+    case "create_arrow":
+      return `Created arrow from (${action.x}, ${action.y}) to (${action.endX}, ${action.endY})`;
+    default:
+      return `Action ${index + 1}: ${action.type}`;
+  }
+}
+
 export function ChatMessage({ message }: ChatMessageProps) {
   const isUser = message.role === "user";
+  const [isThinkingExpanded, setIsThinkingExpanded] = useState(true); // Default expanded
 
   return (
     <div
@@ -69,6 +87,36 @@ export function ChatMessage({ message }: ChatMessageProps) {
             </span>
           )}
         </div>
+
+        {/* Thinking/Actions Section (only for AI with actions) */}
+        {!isUser && message.hasActions && message.actions && message.actions.length > 0 && (
+          <div className="mb-1">
+            <button
+              onClick={() => setIsThinkingExpanded(!isThinkingExpanded)}
+              className="flex items-center gap-2 px-2 py-1.5 text-xs font-medium text-slate-400 hover:text-slate-300 hover:bg-slate-700/30 rounded transition-colors"
+            >
+              {isThinkingExpanded ? (
+                <ChevronDown className="w-3.5 h-3.5" />
+              ) : (
+                <ChevronRight className="w-3.5 h-3.5" />
+              )}
+              <span>Used {message.actions.length} {message.actions.length === 1 ? 'tool' : 'tools'}</span>
+            </button>
+
+            {isThinkingExpanded && (
+              <div className="mt-2 p-3 bg-slate-900/50 border border-slate-700/50 rounded-lg space-y-1.5">
+                {message.actions.map((action, index) => (
+                  <div key={index} className="flex items-start gap-2 text-xs">
+                    <div className="flex-shrink-0 w-4 h-4 mt-0.5 rounded-full bg-violet-500/20 flex items-center justify-center">
+                      <div className="w-1.5 h-1.5 rounded-full bg-violet-400" />
+                    </div>
+                    <span className="text-slate-300 leading-relaxed">{formatAction(action, index)}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
 
         {/* Message Text */}
         <div

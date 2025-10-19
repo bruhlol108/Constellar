@@ -12,16 +12,21 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { ChatMessage, type Message } from "./ChatMessage";
+import { ChatMessage } from "./ChatMessage";
+import type { Message } from "./ChatMessage";
 import { Button } from "./ui/button";
 import { Textarea } from "./ui/textarea";
 import { ScrollArea } from "./ui/scroll-area";
 import { Send, Loader2, Settings, Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { sendMessage, type GeminiMessage } from "@/lib/geminiClient";
+// import { sendMessage, type GeminiMessage } from "@/lib/geminiClient";
+import { mockSendMessage } from "@/lib/mockGeminiClient";
 import { executeActions } from "@/lib/mcpAdapter";
 
 type ExcalidrawImperativeAPI = any;
+
+// Using mock API - no API key needed for now
+const USE_MOCK_API = true;
 import { Input } from "./ui/input";
 import { Label } from "./ui/label";
 import {
@@ -43,7 +48,7 @@ export function ChatSidebar({ excalidrawAPI }: ChatSidebarProps) {
       id: "welcome",
       role: "assistant",
       content:
-        "Hello! I'm your AI whiteboard assistant. Describe any diagram, flowchart, or visual concept you'd like to create, and I'll help bring it to life on the canvas. Try saying something like:\n\n- \"Draw a flowchart for a login system\"\n- \"Create a neural network diagram with 3 layers\"\n- \"Show me a system architecture with database and API\"",
+        "Hello! I'm your AI whiteboard assistant. Describe any diagram, flowchart, or visual concept you'd like to create, and I'll help bring it to life on the canvas.\n\n**Currently using mock API** - no API key needed! Try:\n\n- \"Draw a flowchart\"\n- \"Create a neural network diagram\"\n- \"Make a system diagram\"",
       timestamp: new Date(),
     },
   ]);
@@ -100,15 +105,6 @@ export function ChatSidebar({ excalidrawAPI }: ChatSidebarProps) {
   const handleSendMessage = async () => {
     if (!input.trim() || isLoading) return;
 
-    // Check if API key is set
-    if (!apiKey) {
-      alert(
-        "Please set your Google Gemini API key in the settings (gear icon) before chatting."
-      );
-      setShowSettings(true);
-      return;
-    }
-
     const userMessage: Message = {
       id: Date.now().toString(),
       role: "user",
@@ -120,25 +116,31 @@ export function ChatSidebar({ excalidrawAPI }: ChatSidebarProps) {
     setInput("");
     setIsLoading(true);
 
+    // Add "thinking..." message
+    const thinkingId = `thinking-${Date.now()}`;
+    const thinkingMessage: Message = {
+      id: thinkingId,
+      role: "assistant",
+      content: "Thinking...",
+      timestamp: new Date(),
+    };
+    setMessages((prev) => [...prev, thinkingMessage]);
+
     try {
-      // Convert messages to Gemini format (exclude welcome message)
-      const history: GeminiMessage[] = messages
-        .filter((msg) => msg.id !== "welcome")
-        .map((msg) => ({
-          role: msg.role === "user" ? "user" : "model",
-          content: msg.content,
-        }));
+      // Use mock API
+      const response = await mockSendMessage(userMessage.content);
 
-      // Send message to Gemini
-      const response = await sendMessage(apiKey, userMessage.content, history);
+      // Remove thinking message and add actual response
+      setMessages((prev) => prev.filter((msg) => msg.id !== thinkingId));
 
-      // Create AI response message
+      // Create AI response message with actions
       const aiMessage: Message = {
         id: (Date.now() + 1).toString(),
         role: "assistant",
         content: response.text,
         timestamp: new Date(),
         hasActions: response.hasActions,
+        actions: response.actions,
       };
 
       setMessages((prev) => [...prev, aiMessage]);
@@ -151,10 +153,13 @@ export function ChatSidebar({ excalidrawAPI }: ChatSidebarProps) {
     } catch (error) {
       console.error("Error sending message:", error);
 
+      // Remove thinking message
+      setMessages((prev) => prev.filter((msg) => msg.id !== thinkingId));
+
       const errorMessage: Message = {
         id: (Date.now() + 1).toString(),
         role: "assistant",
-        content: `Sorry, I encountered an error: ${error instanceof Error ? error.message : "Unknown error"}. Please check your API key and try again.`,
+        content: `Sorry, I encountered an error: ${error instanceof Error ? error.message : "Unknown error"}. Please try again.`,
         timestamp: new Date(),
       };
 
