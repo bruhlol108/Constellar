@@ -385,7 +385,7 @@ def create_text(
     fontFamily: int = 1,
     textAlign: Literal["left", "center", "right"] = "left",
     verticalAlign: Literal["top", "middle"] = "top",
-    strokeColor: str = "#e9ecef",
+    strokeColor: str = "#000000",
     containerId: Optional[str] = None
 ) -> dict:
     """Create a text element (used internally and as standalone)"""
@@ -428,7 +428,7 @@ def create_text_standalone(
     fontSize: int = 20,
     fontFamily: int = 1,
     textAlign: Literal["left", "center", "right"] = "left",
-    strokeColor: str = "#e9ecef"
+    strokeColor: str = "#000000"
 ) -> dict:
     """
     Create standalone text on the Excalidraw canvas.
@@ -440,7 +440,7 @@ def create_text_standalone(
         fontSize: Font size in pixels (default 20)
         fontFamily: Font family (1=Virgil, 2=Helvetica, 3=Cascadia) (default 1)
         textAlign: Horizontal alignment - left, center, or right (default left)
-        strokeColor: Text color in hex (default light gray #e9ecef)
+        strokeColor: Text color in hex (default black #000000)
 
     Returns:
         Excalidraw element object for text
