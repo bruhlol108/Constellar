@@ -105,7 +105,7 @@ const tools = [
   },
   {
     name: "create_flowchart",
-    description: "Create a vertical flowchart with connected boxes",
+    description: "Create a simple vertical flowchart with connected boxes",
     parameters: {
       type: "object",
       properties: {
@@ -119,6 +119,73 @@ const tools = [
         y: { type: "number", description: "Starting Y coordinate (default 100)" },
       },
       required: ["title", "steps"],
+    },
+  },
+  {
+    name: "create_advanced_flowchart",
+    description: "Create an advanced flowchart with decision nodes, branches, and custom connections. Use this for complex workflows with conditional logic.",
+    parameters: {
+      type: "object",
+      properties: {
+        nodes: {
+          type: "array",
+          items: {
+            type: "object",
+            properties: {
+              id: { type: "string", description: "Unique identifier for the node" },
+              type: { type: "string", description: "Node type: 'start', 'process', 'decision', or 'end'" },
+              label: { type: "string", description: "Label text for the node" },
+              next: {
+                description: "Connection to next node(s). For decisions use {yes: 'node_id', no: 'node_id'}, for others use 'node_id'"
+              }
+            },
+            required: ["id", "type", "label"]
+          },
+          description: "List of flowchart nodes with connections"
+        },
+        x: { type: "number", description: "Starting X coordinate (default 100)" },
+        y: { type: "number", description: "Starting Y coordinate (default 100)" },
+      },
+      required: ["nodes"],
+    },
+  },
+  {
+    name: "create_system_architecture",
+    description: "Create a system architecture diagram with components (client, server, database, API, cache, queue, storage, service) and their connections. Perfect for showing how different parts of a system interact.",
+    parameters: {
+      type: "object",
+      properties: {
+        components: {
+          type: "array",
+          items: {
+            type: "object",
+            properties: {
+              id: { type: "string", description: "Unique identifier for the component" },
+              type: { type: "string", description: "Component type: 'client', 'server', 'database', 'api', 'cache', 'queue', 'storage', 'service'" },
+              label: { type: "string", description: "Display name for the component" },
+              layer: { type: "number", description: "Vertical layer/tier (0 = top, increases downward)" }
+            },
+            required: ["id", "type", "label"]
+          },
+          description: "List of system components"
+        },
+        connections: {
+          type: "array",
+          items: {
+            type: "object",
+            properties: {
+              from: { type: "string", description: "Source component ID" },
+              to: { type: "string", description: "Target component ID" },
+              label: { type: "string", description: "Optional label for the connection (e.g., 'HTTP', 'SQL', 'gRPC')" }
+            },
+            required: ["from", "to"]
+          },
+          description: "List of connections between components"
+        },
+        x: { type: "number", description: "Starting X coordinate (default 100)" },
+        y: { type: "number", description: "Starting Y coordinate (default 100)" },
+      },
+      required: ["components", "connections"],
     },
   },
 ];
@@ -163,20 +230,34 @@ export async function POST(req: NextRequest) {
     });
 
     // System prompt for Excalidraw generation
-    const systemContext = `You are an AI assistant integrated into Constellar, an AI-enabled whiteboard for engineers. You help users create diagrams and visualizations using Excalidraw.
+    const systemContext = `You are an AI assistant integrated into Constellar, an AI-enabled whiteboard for engineers. You help users create sophisticated diagrams and visualizations using Excalidraw.
 
-You have access to tools for creating shapes:
+**Basic Shape Tools:**
 - create_rectangle: rectangles with optional labels
 - create_ellipse: circles/ellipses with optional labels
 - create_diamond: diamond shapes with optional labels
 - create_arrow: arrows between points with optional labels
 - create_line: simple lines between points
 - create_text_standalone: standalone text
-- create_flowchart: complete flowcharts with title and steps
 
-Use purple theme colors: #8b5cf6 (primary), #a78bfa (secondary), #c4b5fd (light)
+**Advanced Diagram Tools:**
+- create_flowchart: simple vertical flowcharts with title and steps
+- create_advanced_flowchart: complex flowcharts with decision nodes, branches, and loops
+  Use this when users want conditional logic, yes/no branches, or complex workflows
+- create_system_architecture: complete system architecture diagrams
+  Use this for microservices, cloud infrastructure, distributed systems, web apps
+  Supports: client, server, database, API, cache, queue, storage, service components
 
-When users ask you to create shapes, use the appropriate tools. After calling tools, provide a friendly response explaining what you created.`;
+**Color Theme:**
+Use purple/violet gradients: #8b5cf6 (primary), #a78bfa (secondary), #c4b5fd (light)
+
+**When to use each tool:**
+- Simple shapes → use basic shape tools
+- Simple process flows → use create_flowchart
+- Complex workflows with decisions → use create_advanced_flowchart
+- System designs, architectures, infrastructure → use create_system_architecture
+
+Always provide a clear, friendly response explaining what you created and why.`;
 
     const enhancedPrompt = `${systemContext}\n\nUser: ${lastMessage.content}`;
 
