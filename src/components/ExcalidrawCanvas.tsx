@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useRef, forwardRef, useImperativeHandle, useEffect } from "react"
+import React, { useRef, forwardRef, useImperativeHandle, useEffect, useState } from "react"
 import { Excalidraw } from "@excalidraw/excalidraw"
 
 interface ExcalidrawCanvasProps {
@@ -9,16 +9,33 @@ interface ExcalidrawCanvasProps {
 
 const ExcalidrawCanvas = forwardRef<any, ExcalidrawCanvasProps>((props, ref) => {
   const excalidrawRef = useRef<any>(null)
+  const [apiNotified, setApiNotified] = useState(false)
 
   // Expose the Excalidraw API to parent components
   useImperativeHandle(ref, () => excalidrawRef.current)
 
-  // Also call onAPIReady when API is initialized
+  // Poll for API availability and notify parent
   useEffect(() => {
-    if (excalidrawRef.current && props.onAPIReady) {
+    if (!apiNotified && excalidrawRef.current && props.onAPIReady) {
+      console.log("[ExcalidrawCanvas] API detected in useEffect, notifying parent");
       props.onAPIReady(excalidrawRef.current);
+      setApiNotified(true);
     }
-  }, [excalidrawRef.current, props.onAPIReady]);
+  }, [excalidrawRef.current, props.onAPIReady, apiNotified])
+
+  // Also set up a polling interval as backup
+  useEffect(() => {
+    const interval = setInterval(() => {
+      if (!apiNotified && excalidrawRef.current && props.onAPIReady) {
+        console.log("[ExcalidrawCanvas] API detected via polling, notifying parent");
+        props.onAPIReady(excalidrawRef.current);
+        setApiNotified(true);
+        clearInterval(interval);
+      }
+    }, 100);
+
+    return () => clearInterval(interval);
+  }, [apiNotified, props.onAPIReady]);
 
   const handleSaveJSON = async () => {
     try {
@@ -84,7 +101,13 @@ const ExcalidrawCanvas = forwardRef<any, ExcalidrawCanvasProps>((props, ref) => 
 
   return (
     <div style={{ height: "100%", width: "100%" }}>
-      <Excalidraw excalidrawAPI={(api: any) => { excalidrawRef.current = api }} />
+      <Excalidraw excalidrawAPI={(api: any) => {
+        excalidrawRef.current = api;
+        console.log("[ExcalidrawCanvas] API initialized:", !!api);
+        if (api && props.onAPIReady) {
+          props.onAPIReady(api);
+        }
+      }} />
     </div>
   )
 })
