@@ -16,7 +16,7 @@ export default function Home() {
     // Check if user is signed in
     supabase.auth.getUser().then(({ data: { user } }) => {
       if (user) {
-        // Signed in → Go to workspace (projects list)
+        // Signed in → Go to workspace (constellations list)
         router.push("/projects");
       } else {
         // Not signed in → Show landing page

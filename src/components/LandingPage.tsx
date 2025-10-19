@@ -33,19 +33,31 @@ export default function LandingPage() {
               <span className="text-sm text-purple-300">AI-Powered Canvas</span>
             </motion.div>
 
+            {/* Brand Name - Top Bar */}
+            <motion.div
+              initial={{ opacity: 0, y: -20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.2, duration: 0.8 }}
+              className="mb-8"
+            >
+              <h1 className="text-8xl md:text-9xl font-bold bg-gradient-to-r from-purple-400 via-violet-400 to-indigo-400 bg-clip-text text-transparent">
+                Constellar
+              </h1>
+            </motion.div>
+
             {/* Main Heading */}
-            <motion.h1
+            <motion.h2
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.3, duration: 0.8 }}
-              className="text-6xl md:text-8xl font-bold leading-tight mb-6"
+              transition={{ delay: 0.4, duration: 0.8 }}
+              className="text-5xl md:text-7xl font-bold leading-tight mb-6"
             >
               Design at the
               <br />
               <span className="bg-gradient-to-r from-purple-400 via-violet-400 to-indigo-400 bg-clip-text text-transparent">
                 Speed of Thought
               </span>
-            </motion.h1>
+            </motion.h2>
 
             {/* Subtitle */}
             <motion.p
@@ -54,7 +66,7 @@ export default function LandingPage() {
               transition={{ delay: 0.5, duration: 0.8 }}
               className="text-xl md:text-2xl text-gray-400 mb-12 max-w-3xl mx-auto"
             >
-              Transform conversations into diagrams. Build architecture, workflows, and systems with AI assistance.
+              Chart your ideas across the cosmos. Transform conversations into stellar diagrams with AI-powered intelligence that understands your vision.
             </motion.p>
 
             {/* CTA */}
@@ -106,13 +118,13 @@ export default function LandingPage() {
               className="text-center mb-20"
             >
               <h2 className="text-5xl md:text-6xl font-bold mb-6">
-                Built for{" "}
+                Engineered for{" "}
                 <span className="bg-gradient-to-r from-purple-400 to-violet-400 bg-clip-text text-transparent">
-                  Engineers
+                  Explorers
                 </span>
               </h2>
               <p className="text-xl text-gray-400 max-w-2xl mx-auto">
-                Intelligent tools that understand context and accelerate your workflow
+                Intelligent tools that navigate context and propel your creative journey through space
               </p>
             </motion.div>
 
@@ -129,9 +141,9 @@ export default function LandingPage() {
                   <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-purple-500/20 to-violet-500/10 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-500">
                     <Brain className="w-7 h-7 text-purple-400" />
                   </div>
-                  <h3 className="text-2xl font-bold mb-4">Context-Aware AI</h3>
+                  <h3 className="text-2xl font-bold mb-4">Cosmic Intelligence</h3>
                   <p className="text-gray-400 leading-relaxed">
-                    AI that remembers every conversation and sees your entire diagram. Make changes that build on previous work.
+                    AI that navigates your entire universe of ideas, remembering every orbit and constellation. Build systems that evolve across time and space.
                   </p>
                 </div>
               </motion.div>
@@ -148,9 +160,9 @@ export default function LandingPage() {
                   <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-purple-500/20 to-violet-500/10 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-500">
                     <MessageSquare className="w-7 h-7 text-purple-400" />
                   </div>
-                  <h3 className="text-2xl font-bold mb-4">Natural Language</h3>
+                  <h3 className="text-2xl font-bold mb-4">Stellar Communication</h3>
                   <p className="text-gray-400 leading-relaxed">
-                    Describe what you need in plain English. Generate flowcharts, architectures, and diagrams instantly.
+                    Transmit your vision in natural language. Watch as nebulas of thought crystallize into constellations of architecture and design.
                   </p>
                 </div>
               </motion.div>
@@ -167,9 +179,9 @@ export default function LandingPage() {
                   <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-purple-500/20 to-violet-500/10 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-500">
                     <Zap className="w-7 h-7 text-purple-400" />
                   </div>
-                  <h3 className="text-2xl font-bold mb-4">Instant Iterations</h3>
+                  <h3 className="text-2xl font-bold mb-4">Lightspeed Iteration</h3>
                   <p className="text-gray-400 leading-relaxed">
-                    Auto-save, version control, and real-time collaboration. Never lose progress, always move forward.
+                    Warp-speed auto-save, temporal version control, and real-time collaboration across galaxies. Never lose a star, always orbit forward.
                   </p>
                 </div>
               </motion.div>
@@ -188,10 +200,10 @@ export default function LandingPage() {
           >
             <div className="relative p-12 rounded-3xl border border-white/10 bg-gradient-to-b from-purple-500/10 to-transparent backdrop-blur-xl">
               <h2 className="text-5xl md:text-6xl font-bold mb-6">
-                Ready to build?
+                Ready to launch?
               </h2>
               <p className="text-xl text-gray-400 mb-10 max-w-2xl mx-auto">
-                Join teams using Constellar to design faster, collaborate smarter, and ship better products.
+                Join pioneering teams navigating the Constellar universe to design at lightspeed, collaborate across dimensions, and launch stellar products.
               </p>
               <Link href="/auth">
                 <Button

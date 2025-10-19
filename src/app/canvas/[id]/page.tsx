@@ -218,11 +218,11 @@ export default function CanvasPage({ params }: { params: Promise<{ id: string }>
       </div>
 
       {/* Canvas with AI Sidebar */}
-      <div className="flex-1 relative">
-        <ResizablePanelGroup direction="horizontal" style={{ height: '100%' }}>
+      <div className="flex-1 relative overflow-hidden">
+        <ResizablePanelGroup direction="horizontal" className="h-full">
           {/* Left Panel: Excalidraw Canvas */}
-          <ResizablePanel defaultSize={70} minSize={30} style={{ height: '100%' }}>
-            <div style={{ height: '100%', width: '100%', position: 'relative' }}>
+          <ResizablePanel defaultSize={70} minSize={30} className="h-full">
+            <div className="h-full w-full relative">
               {typeof window !== "undefined" && (
                 <Excalidraw
                   excalidrawAPI={(api: any) => {
@@ -243,15 +243,12 @@ export default function CanvasPage({ params }: { params: Promise<{ id: string }>
           <ResizableHandle className="w-1 bg-slate-800 hover:bg-violet-500 transition-colors" />
 
           {/* Right Panel: Chat Sidebar */}
-          <ResizablePanel defaultSize={30} minSize={20} maxSize={50} style={{ height: '100%' }}>
-            <ChatSidebar excalidrawAPI={excalidrawAPI} />
+          <ResizablePanel defaultSize={30} minSize={20} maxSize={50} className="h-full overflow-hidden">
+            <div className="h-full overflow-hidden">
+              <ChatSidebar excalidrawAPI={excalidrawAPI} />
+            </div>
           </ResizablePanel>
         </ResizablePanelGroup>
-
-        {/* Info banner overlay */}
-        <div className="absolute bottom-0 left-0 right-0 px-4 py-2 bg-purple-500/10 border-t border-purple-500/20 text-xs text-gray-300 text-center pointer-events-none z-10">
-          💡 Auto-saves every 3 seconds | Click "Save Version" to create a snapshot
-        </div>
       </div>
     </div>
   );
