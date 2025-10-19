@@ -326,7 +326,7 @@ export default function CanvasPage({ params }: { params: Promise<{ id: string }>
           {/* Right Panel: Chat Sidebar */}
           <ResizablePanel defaultSize={30} minSize={20} maxSize={50} className="h-full overflow-hidden">
             <div className="h-full overflow-hidden">
-              <ChatSidebar excalidrawAPI={excalidrawAPI} />
+              <ChatSidebar excalidrawAPI={excalidrawAPI} projectId={projectId} />
             </div>
           </ResizablePanel>
         </ResizablePanelGroup>

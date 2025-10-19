@@ -25,20 +25,14 @@ type ExcalidrawImperativeAPI = any;
 
 interface ChatSidebarProps {
   excalidrawAPI: ExcalidrawImperativeAPI | null;
+  projectId: string;
 }
 
-export function ChatSidebar({ excalidrawAPI }: ChatSidebarProps) {
-  const [messages, setMessages] = useState<Message[]>([
-    {
-      id: "welcome",
-      role: "assistant",
-      content:
-        "Hello! I'm your AI whiteboard assistant powered by Google Gemini and Excalidraw. Describe any diagram, flowchart, or visual concept you'd like to create, and I'll help bring it to life on the canvas.\n\nTry:\n- \"Create a simple flowchart\"\n- \"Draw a system architecture diagram\"\n- \"Make a neural network diagram\"",
-      timestamp: new Date(),
-    },
-  ]);
+export function ChatSidebar({ excalidrawAPI, projectId }: ChatSidebarProps) {
+  const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [loadingMessages, setLoadingMessages] = useState(true);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -54,10 +48,85 @@ export function ChatSidebar({ excalidrawAPI }: ChatSidebarProps) {
     }
   }, [messages]);
 
-  // Focus input on mount
+  // Load messages from database on mount
   useEffect(() => {
-    textareaRef.current?.focus();
-  }, []);
+    const loadMessages = async () => {
+      try {
+        const response = await fetch(`/api/projects/${projectId}/messages`);
+        const data = await response.json();
+
+        if (data.messages && data.messages.length > 0) {
+          // Convert database messages to Message format
+          const loadedMessages: Message[] = data.messages.map((msg: any) => ({
+            id: msg.id,
+            role: msg.role,
+            content: msg.content,
+            timestamp: new Date(msg.created_at),
+            hasActions: msg.metadata?.hasActions || false,
+            actions: msg.metadata?.actions || [],
+          }));
+          setMessages(loadedMessages);
+        } else {
+          // No messages in database, show welcome message
+          const welcomeMessage: Message = {
+            id: "welcome",
+            role: "assistant",
+            content:
+              "Hey! I'm Constellar AI, your workspace assistant. I'm here to chat, answer questions, help you brainstorm, and create diagrams when you need them.\n\nFeel free to:\n- Ask me anything or have a conversation\n- Request diagrams, flowcharts, or visualizations\n- Brainstorm ideas together\n- Get explanations on concepts\n\nWhat can I help you with?",
+            timestamp: new Date(),
+          };
+          setMessages([welcomeMessage]);
+
+          // Save welcome message to database
+          await saveMessageToDatabase(welcomeMessage);
+        }
+      } catch (error) {
+        console.error("Error loading messages:", error);
+        // On error, show welcome message
+        const welcomeMessage: Message = {
+          id: "welcome",
+          role: "assistant",
+          content:
+            "Hey! I'm Constellar AI, your workspace assistant. I'm here to chat, answer questions, help you brainstorm, and create diagrams when you need them.\n\nFeel free to:\n- Ask me anything or have a conversation\n- Request diagrams, flowcharts, or visualizations\n- Brainstorm ideas together\n- Get explanations on concepts\n\nWhat can I help you with?",
+          timestamp: new Date(),
+        };
+        setMessages([welcomeMessage]);
+      } finally {
+        setLoadingMessages(false);
+      }
+    };
+
+    loadMessages();
+  }, [projectId]);
+
+  // Focus input after loading
+  useEffect(() => {
+    if (!loadingMessages) {
+      textareaRef.current?.focus();
+    }
+  }, [loadingMessages]);
+
+  // Helper function to save a message to the database
+  const saveMessageToDatabase = async (message: Message) => {
+    try {
+      await fetch(`/api/projects/${projectId}/messages`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          role: message.role,
+          content: message.content,
+          metadata: {
+            hasActions: message.hasActions || false,
+            actions: message.actions || [],
+          },
+        }),
+      });
+    } catch (error) {
+      console.error("Error saving message:", error);
+    }
+  };
 
   const handleClearChat = () => {
     setMessages([
@@ -65,10 +134,11 @@ export function ChatSidebar({ excalidrawAPI }: ChatSidebarProps) {
         id: "welcome",
         role: "assistant",
         content:
-          "Chat cleared. What would you like to create on the whiteboard?",
+          "Chat cleared! Ready for a fresh start. What would you like to talk about or work on?",
         timestamp: new Date(),
       },
     ]);
+    // Note: We don't clear the database, just the UI
   };
 
   const handleSendMessage = async () => {
@@ -84,6 +154,9 @@ export function ChatSidebar({ excalidrawAPI }: ChatSidebarProps) {
     setMessages((prev) => [...prev, userMessage]);
     setInput("");
     setIsLoading(true);
+
+    // Save user message to database
+    await saveMessageToDatabase(userMessage);
 
     try {
       // Call the API route
@@ -131,6 +204,9 @@ export function ChatSidebar({ excalidrawAPI }: ChatSidebarProps) {
       }
 
       setMessages((prev) => [...prev, aiMessage]);
+
+      // Save AI message to database
+      await saveMessageToDatabase(aiMessage);
 
       // If there are elements, add them to the canvas
       if (data.elements && data.elements.length > 0) {
@@ -215,18 +291,29 @@ export function ChatSidebar({ excalidrawAPI }: ChatSidebarProps) {
       <div className="flex-1 overflow-hidden">
         <ScrollArea ref={scrollAreaRef} className="h-full px-4 py-4">
           <div className="space-y-4 pb-4">
-            {messages.map((message) => (
-              <ChatMessage key={message.id} message={message} />
-            ))}
-            {isLoading && (
-              <div className="flex items-center gap-3 p-4 rounded-lg bg-slate-800/50 mr-8">
-                <div className="flex-shrink-0">
-                  <CosmicLoader size="sm" />
-                </div>
-                <div className="text-sm text-slate-400">
-                  Constellar AI is thinking...
+            {loadingMessages ? (
+              <div className="flex items-center justify-center h-full">
+                <div className="flex flex-col items-center gap-3">
+                  <CosmicLoader size="lg" />
+                  <p className="text-sm text-slate-400">Loading chat history...</p>
                 </div>
               </div>
+            ) : (
+              <>
+                {messages.map((message) => (
+                  <ChatMessage key={message.id} message={message} />
+                ))}
+                {isLoading && (
+                  <div className="flex items-center gap-3 p-4 rounded-lg bg-slate-800/50 mr-8">
+                    <div className="flex-shrink-0">
+                      <CosmicLoader size="sm" />
+                    </div>
+                    <div className="text-sm text-slate-400">
+                      Constellar AI is thinking...
+                    </div>
+                  </div>
+                )}
+              </>
             )}
           </div>
         </ScrollArea>
