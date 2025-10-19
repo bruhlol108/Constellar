@@ -523,6 +523,313 @@ def create_flowchart(
     return {"elements": elements}
 
 
+@mcp.tool()
+def create_advanced_flowchart(
+    nodes: list[dict],
+    x: float = 100,
+    y: float = 100,
+    nodeWidth: float = 200,
+    nodeHeight: float = 80,
+    horizontalSpacing: float = 120,
+    verticalSpacing: float = 60
+) -> dict:
+    """
+    Create an advanced flowchart with decision nodes, branches, and custom connections.
+
+    Args:
+        nodes: List of node dicts with 'id', 'type', 'label', and optional 'next' for connections
+               type can be: 'start', 'process', 'decision', 'end'
+               next can be a node id, or for decisions: {'yes': 'node_id', 'no': 'node_id'}
+        x: Starting X coordinate (default 100)
+        y: Starting Y coordinate (default 100)
+        nodeWidth: Width of each node (default 200)
+        nodeHeight: Height of each node (default 80)
+        horizontalSpacing: Space between branches (default 120)
+        verticalSpacing: Space between vertical nodes (default 60)
+
+    Returns:
+        Excalidraw elements for an advanced flowchart
+
+    Example nodes:
+    [
+        {"id": "start", "type": "start", "label": "Start", "next": "step1"},
+        {"id": "step1", "type": "process", "label": "Initialize", "next": "decision1"},
+        {"id": "decision1", "type": "decision", "label": "Valid?", "next": {"yes": "step2", "no": "error"}},
+        {"id": "step2", "type": "process", "label": "Process", "next": "end"},
+        {"id": "error", "type": "process", "label": "Handle Error", "next": "end"},
+        {"id": "end", "type": "end", "label": "End"}
+    ]
+    """
+    elements = []
+    node_positions = {}
+    current_y = y
+
+    # Layout algorithm: level-based positioning
+    levels = {}
+    node_map = {node['id']: node for node in nodes}
+
+    def get_level(node_id, visited=None):
+        if visited is None:
+            visited = set()
+        if node_id in visited:
+            return 0
+        visited.add(node_id)
+
+        if node_id not in node_map:
+            return 0
+
+        node = node_map[node_id]
+        next_nodes = []
+
+        if 'next' in node:
+            if isinstance(node['next'], dict):
+                next_nodes = list(node['next'].values())
+            elif node['next']:
+                next_nodes = [node['next']]
+
+        if not next_nodes:
+            return 0
+
+        return 1 + max(get_level(n, visited.copy()) for n in next_nodes)
+
+    # Assign levels (reverse topological order)
+    for node in nodes:
+        node['level'] = get_level(node['id'])
+
+    # Group by level
+    max_level = max(n['level'] for n in nodes) if nodes else 0
+    for node in nodes:
+        level = max_level - node['level']
+        if level not in levels:
+            levels[level] = []
+        levels[level].append(node)
+
+    # Position nodes
+    for level in sorted(levels.keys()):
+        level_nodes = levels[level]
+        level_width = len(level_nodes) * nodeWidth + (len(level_nodes) - 1) * horizontalSpacing
+        start_x = x + (nodeWidth - level_width) / 2 if len(level_nodes) > 1 else x
+
+        for i, node in enumerate(level_nodes):
+            node_x = start_x + i * (nodeWidth + horizontalSpacing)
+            node_y = y + level * (nodeHeight + verticalSpacing)
+
+            # Create shape based on type
+            if node['type'] == 'start' or node['type'] == 'end':
+                shape = create_ellipse(
+                    node_x, node_y, nodeWidth, nodeHeight,
+                    backgroundColor="#a78bfa" if node['type'] == 'start' else "#8b5cf6",
+                    label=node['label']
+                )
+            elif node['type'] == 'decision':
+                shape = create_diamond(
+                    node_x, node_y, nodeWidth, nodeHeight,
+                    backgroundColor="#c4b5fd",
+                    label=node['label']
+                )
+            else:  # process
+                shape = create_rectangle(
+                    node_x, node_y, nodeWidth, nodeHeight,
+                    backgroundColor="#ddd6fe",
+                    label=node['label']
+                )
+
+            elements.extend(shape['elements'])
+            node_positions[node['id']] = {
+                'x': node_x + nodeWidth / 2,
+                'y': node_y + nodeHeight / 2,
+                'bottom': node_y + nodeHeight,
+                'top': node_y
+            }
+
+    # Create connections
+    for node in nodes:
+        if 'next' not in node or not node['next']:
+            continue
+
+        from_pos = node_positions[node['id']]
+
+        if isinstance(node['next'], dict):
+            # Decision node with yes/no branches
+            for branch, target_id in node['next'].items():
+                if target_id in node_positions:
+                    to_pos = node_positions[target_id]
+                    arrow = create_arrow(
+                        from_pos['x'],
+                        from_pos['bottom'],
+                        to_pos['x'],
+                        to_pos['top'],
+                        strokeColor="#8b5cf6",
+                        label=branch.upper()
+                    )
+                    elements.extend(arrow['elements'])
+        else:
+            # Simple connection
+            target_id = node['next']
+            if target_id in node_positions:
+                to_pos = node_positions[target_id]
+                arrow = create_arrow(
+                    from_pos['x'],
+                    from_pos['bottom'],
+                    to_pos['x'],
+                    to_pos['top'],
+                    strokeColor="#8b5cf6"
+                )
+                elements.extend(arrow['elements'])
+
+    return {"elements": elements}
+
+
+@mcp.tool()
+def create_system_architecture(
+    components: list[dict],
+    connections: list[dict],
+    x: float = 100,
+    y: float = 100,
+    componentWidth: float = 180,
+    componentHeight: float = 120,
+    horizontalSpacing: float = 200,
+    verticalSpacing: float = 150
+) -> dict:
+    """
+    Create a system architecture diagram with various component types.
+
+    Args:
+        components: List of component dicts with 'id', 'type', 'label', optional 'layer'
+                   type can be: 'client', 'server', 'database', 'api', 'cache', 'queue', 'storage', 'service'
+        connections: List of connection dicts with 'from', 'to', optional 'label'
+        x: Starting X coordinate (default 100)
+        y: Starting Y coordinate (default 100)
+        componentWidth: Width of each component (default 180)
+        componentHeight: Height of each component (default 120)
+        horizontalSpacing: Space between components horizontally (default 200)
+        verticalSpacing: Space between layers vertically (default 150)
+
+    Returns:
+        Excalidraw elements for a system architecture diagram
+
+    Example:
+    components = [
+        {"id": "web", "type": "client", "label": "Web App", "layer": 0},
+        {"id": "lb", "type": "server", "label": "Load Balancer", "layer": 1},
+        {"id": "api1", "type": "api", "label": "API Server 1", "layer": 2},
+        {"id": "api2", "type": "api", "label": "API Server 2", "layer": 2},
+        {"id": "db", "type": "database", "label": "PostgreSQL", "layer": 3},
+        {"id": "cache", "type": "cache", "label": "Redis", "layer": 3}
+    ]
+    connections = [
+        {"from": "web", "to": "lb", "label": "HTTPS"},
+        {"from": "lb", "to": "api1"},
+        {"from": "lb", "to": "api2"},
+        {"from": "api1", "to": "db", "label": "SQL"},
+        {"from": "api2", "to": "db", "label": "SQL"},
+        {"from": "api1", "to": "cache"},
+        {"from": "api2", "to": "cache"}
+    ]
+    """
+    elements = []
+    component_positions = {}
+
+    # Component type styling
+    type_styles = {
+        'client': {'color': '#60a5fa', 'bg': '#dbeafe', 'icon': '👤'},
+        'server': {'color': '#8b5cf6', 'bg': '#ede9fe', 'icon': '🖥️'},
+        'database': {'color': '#10b981', 'bg': '#d1fae5', 'icon': '💾'},
+        'api': {'color': '#f59e0b', 'bg': '#fef3c7', 'icon': '🔌'},
+        'cache': {'color': '#ef4444', 'bg': '#fee2e2', 'icon': '⚡'},
+        'queue': {'color': '#ec4899', 'bg': '#fce7f3', 'icon': '📬'},
+        'storage': {'color': '#14b8a6', 'bg': '#ccfbf1', 'icon': '📦'},
+        'service': {'color': '#6366f1', 'bg': '#e0e7ff', 'icon': '⚙️'}
+    }
+
+    # Group components by layer
+    layers = {}
+    for comp in components:
+        layer = comp.get('layer', 0)
+        if layer not in layers:
+            layers[layer] = []
+        layers[layer].append(comp)
+
+    # Position components
+    for layer_num in sorted(layers.keys()):
+        layer_comps = layers[layer_num]
+        layer_width = len(layer_comps) * componentWidth + (len(layer_comps) - 1) * horizontalSpacing
+        start_x = x + (componentWidth - layer_width) / 2 if len(layer_comps) > 1 else x
+
+        for i, comp in enumerate(layer_comps):
+            comp_x = start_x + i * (componentWidth + horizontalSpacing)
+            comp_y = y + layer_num * (componentHeight + verticalSpacing)
+
+            comp_type = comp.get('type', 'service')
+            style = type_styles.get(comp_type, type_styles['service'])
+
+            # Create component box
+            if comp_type == 'database':
+                # Databases are cylinders (use ellipse)
+                shape = create_ellipse(
+                    comp_x, comp_y, componentWidth, componentHeight,
+                    strokeColor=style['color'],
+                    backgroundColor=style['bg'],
+                    label=f"{style['icon']} {comp['label']}"
+                )
+            else:
+                # Others are rectangles
+                shape = create_rectangle(
+                    comp_x, comp_y, componentWidth, componentHeight,
+                    strokeColor=style['color'],
+                    backgroundColor=style['bg'],
+                    strokeStyle="solid",
+                    fillStyle="solid",
+                    label=f"{style['icon']} {comp['label']}"
+                )
+
+            elements.extend(shape['elements'])
+            component_positions[comp['id']] = {
+                'x': comp_x + componentWidth / 2,
+                'y': comp_y + componentHeight / 2,
+                'bottom': comp_y + componentHeight,
+                'top': comp_y,
+                'right': comp_x + componentWidth,
+                'left': comp_x
+            }
+
+    # Create connections
+    for conn in connections:
+        from_id = conn['from']
+        to_id = conn['to']
+
+        if from_id not in component_positions or to_id not in component_positions:
+            continue
+
+        from_pos = component_positions[from_id]
+        to_pos = component_positions[to_id]
+
+        # Determine connection points based on relative positions
+        if from_pos['bottom'] < to_pos['top']:
+            # Vertical connection (from bottom to top)
+            start_x, start_y = from_pos['x'], from_pos['bottom']
+            end_x, end_y = to_pos['x'], to_pos['top']
+        elif from_pos['x'] < to_pos['x']:
+            # Horizontal connection (from right to left)
+            start_x, start_y = from_pos['right'], from_pos['y']
+            end_x, end_y = to_pos['left'], to_pos['y']
+        else:
+            # Horizontal connection (from left to right)
+            start_x, start_y = from_pos['left'], from_pos['y']
+            end_x, end_y = to_pos['right'], to_pos['y']
+
+        arrow = create_arrow(
+            start_x, start_y,
+            end_x, end_y,
+            strokeColor="#64748b",
+            strokeStyle="solid",
+            label=conn.get('label', None)
+        )
+        elements.extend(arrow['elements'])
+
+    return {"elements": elements}
+
+
 if __name__ == "__main__":
     import sys
 
@@ -554,6 +861,8 @@ if __name__ == "__main__":
                 "create_line": create_line,
                 "create_text_standalone": create_text_standalone,
                 "create_flowchart": create_flowchart,
+                "create_advanced_flowchart": create_advanced_flowchart,
+                "create_system_architecture": create_system_architecture,
             }
 
             if tool_name not in tools_map:
