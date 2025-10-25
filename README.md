@@ -1,4 +1,4 @@
-# ✨ Constellar
+# Constellar
 
 **AI-Powered Whiteboard for Intelligent Design**
 
@@ -6,14 +6,14 @@ Constellar is an intelligent whiteboard application that combines the power of A
 
 ## 🌟 Features
 
-- **🤖 AI-Powered Design**: Chat with AI to generate complex diagrams and visual architectures
-- **💬 Natural Language Input**: Describe your vision in plain English - "create a web app architecture"
-- **🎨 Excalidraw Canvas**: Beautiful hand-drawn aesthetic with professional diagramming capabilities
-- **⚡ Real-Time Generation**: Watch your ideas transform into visual diagrams instantly
-- **💾 Auto-Save**: Never lose your work with automatic project persistence
-- **🎯 Smart Elements**: AI understands shapes, connections, and layout optimization
+- ** AI-Powered Design**: Chat with AI to generate complex diagrams and visual architectures
+- ** Natural Language Input**: Describe your vision in plain English - "create a web app architecture"
+- ** Excalidraw Canvas**: Beautiful hand-drawn aesthetic with professional diagramming capabilities
+- ** Real-Time Generation**: Watch your ideas transform into visual diagrams instantly
+- ** Auto-Save**: Never lose your work with automatic project persistence
+- ** Smart Elements**: AI understands shapes, connections, and layout optimization
 
-## 🚀 Tech Stack
+## Tech Stack
 
 ### Frontend
 - **Next.js 15.3.5** - React framework with App Router
@@ -33,7 +33,7 @@ Constellar is an intelligent whiteboard application that combines the power of A
 - **better-auth** - Authentication
 - **Python MCP Server** - AI function calling backend
 
-## 📦 Getting Started
+##  Getting Started
 
 ### Prerequisites
 - Node.js 18+
@@ -100,7 +100,7 @@ python server.py --api
 - "Make a network diagram with 3 servers and a load balancer"
 - "Design a microservices architecture"
 
-## 🗂️ Project Structure
+## Project Structure
 
 ```
 Constellar/
@@ -121,7 +121,7 @@ Constellar/
 └── public/                    # Static assets
 ```
 
-## 🎨 Key Components
+## Key Components
 
 - **ChatSidebar**: AI chat interface with conversation history
 - **Canvas**: Excalidraw-powered drawing canvas
@@ -143,22 +143,22 @@ npm run lint         # Run ESLint
 
 See `.env.local.example` for all available environment variables.
 
-## 🤝 Contributing
+## Contributing
 
 Contributions are welcome! Please feel free to submit a Pull Request.
 
-## 📄 License
+## License
 
 This project is licensed under the MIT License.
 
-## 🙏 Acknowledgments
+## Acknowledgments
 
 - [Excalidraw](https://excalidraw.com/) - Amazing whiteboard library
 - [Next.js](https://nextjs.org/) - React framework
 - [Google Gemini](https://deepmind.google/technologies/gemini/) - AI capabilities
 - [shadcn/ui](https://ui.shadcn.com/) - Beautiful UI components
 
-## 🔗 Links
+## Links
 
 - **Live Demo**: [Coming Soon]
 - **GitHub**: [https://github.com/ThatParticularPencil/Constellar](https://github.com/ThatParticularPencil/Constellar)
@@ -166,4 +166,4 @@ This project is licensed under the MIT License.
 
 ---
 
-Built with ✨ by the Constellar team
+Built by the Constellar team
