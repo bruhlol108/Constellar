@@ -4,7 +4,7 @@
 
 Constellar is an intelligent whiteboard application that combines the power of AI with the intuitive hand-drawn aesthetics of Excalidraw. Simply describe what you want to create in natural language, and watch as diagrams, flowcharts, and system architectures materialize on your canvas.
 
-## 🌟 Features
+## Features
 
 - ** AI-Powered Design**: Chat with AI to generate complex diagrams and visual architectures
 - ** Natural Language Input**: Describe your vision in plain English - "create a web app architecture"
